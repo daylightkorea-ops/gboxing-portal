@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>GBOXING 관리 포털</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;
+  --green:#27500A;--green-l:#EAF3DE;--green-m:#1D9E75;
+  --red:#791F1F;--red-l:#FCEBEB;
+  --amber:#633806;--amber-l:#FAEEDA;
+  --pink:#E87DBB;--gray:#6B7280;
+  --bg:#F5F5F3;--bg2:#fafafa;--bg3:#f0f0f0;
+  --border:#e0e0e0;--text:#1a1a1a;--text2:#555;--white:#fff;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;}
+.hidden{display:none!important;}
+
+/* LOGIN */
+#page-login{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.login-box{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:36px 32px;width:360px;box-shadow:0 4px 24px rgba(0,0,0,.07);}
+.login-logo{font-size:20px;font-weight:700;margin-bottom:4px;}
+.login-logo em{color:var(--blue);font-style:normal;}
+.login-sub{font-size:12px;color:var(--gray);margin-bottom:24px;}
+.lf{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.lf label{font-size:11px;color:var(--gray);}
+.lf input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
+.lf input:focus{border-color:var(--blue);}
+.login-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;}
+.login-btn:hover{background:#0C447C;}
+.login-err{font-size:11px;color:var(--red);margin-top:6px;display:none;}
+.hint-box{margin-top:16px;padding:12px;background:var(--bg2);border-radius:10px;}
+.hint-title{font-size:11px;font-weight:600;margin-bottom:8px;}
+.hint-row{display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;border-radius:6px;}
+.hint-row:hover{background:var(--bg3);}
+.hint-name{font-size:12px;font-weight:500;flex:1;}
+.hint-id{font-size:10px;color:var(--gray);}
+.rtag{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;}
+.rt-hq{background:var(--blue-l);color:var(--blue);}
+.rt-br{background:var(--green-l);color:var(--green);}
+
+/* SHELL */
+.shell{display:flex;height:100vh;}
+.sidebar{width:216px;min-width:216px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{padding:16px;border-bottom:1px solid var(--border);}
+.sb-logo{font-size:15px;font-weight:700;}
+.sb-logo em{color:var(--blue);font-style:normal;}
+.sb-meta{margin-top:9px;display:flex;align-items:center;gap:9px;}
+.sb-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.av-hq{background:var(--blue-l);color:var(--blue);}
+.av-br{background:var(--green-l);color:var(--green);}
+.sb-uname{font-size:12px;font-weight:600;}
+.nav-grp{padding:12px 10px 3px;font-size:10px;color:var(--gray);letter-spacing:.07em;text-transform:uppercase;font-weight:500;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:7px;margin:1px 7px;}
+.ni:hover{background:var(--bg2);}
+.ni.act{background:var(--blue-l);color:var(--blue);font-weight:600;}
+.ni-ic{font-size:14px;width:18px;text-align:center;}
+.ni-badge{margin-left:auto;font-size:10px;background:var(--red-l);color:var(--red);padding:1px 7px;border-radius:8px;font-weight:600;}
+.sb-foot{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);}
+.logout-btn{width:100%;padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:7px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;gap:7px;}
+.logout-btn:hover{background:var(--bg2);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.tb-title{font-size:15px;font-weight:700;}
+.content{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:13px;}
+.view{display:none;flex-direction:column;gap:13px;}
+.view.on{display:flex;}
+
+/* COMPONENTS */
+.kg4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.kg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.kg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.kpi-l{font-size:11px;color:var(--gray);margin-bottom:4px;}
+.kpi-v{font-size:22px;font-weight:700;line-height:1.1;}
+.kpi-s{font-size:11px;margin-top:4px;}
+.up{color:var(--green);}.dn{color:var(--red);}.nt{color:var(--gray);}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-t{font-size:13px;font-weight:600;}
+.card-s{font-size:11px;color:var(--gray);}
+.row2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+
+/* BARS */
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:90px;}
+.bar-grp{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.bar-pair{display:flex;align-items:flex-end;gap:2px;height:65px;justify-content:center;}
+.bar{border-radius:3px 3px 0 0;width:12px;}
+.b-blue{background:var(--blue-m);}.b-green{background:var(--green-m);}
+.bar-lbl{font-size:9px;color:var(--gray);text-align:center;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+
+/* MEMBER BAR CARD with numbers */
+.mbr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.mbr-label{font-size:12px;font-weight:500;width:48px;flex-shrink:0;}
+.mbr-bar-bg{flex:1;height:22px;background:var(--bg3);border-radius:6px;overflow:hidden;position:relative;}
+.mbr-bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#fff;gap:6px;white-space:nowrap;}
+.mbr-nums{font-size:11px;color:var(--gray);white-space:nowrap;width:90px;flex-shrink:0;text-align:right;}
+
+/* SVG LINE */
+.svg-line{width:100%;display:block;}
+
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:14px;justify-content:center;padding:4px 0;}
+.donut-leg{display:flex;flex-direction:column;gap:7px;}
+.donut-i{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--gray);}
+.donut-clr{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* PIE CHART CANVAS */
+.pie-wrap{display:flex;align-items:center;gap:12px;justify-content:center;}
+.pie-leg{display:flex;flex-direction:column;gap:5px;}
+.pie-i{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray);}
+.pie-clr{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+/* TABLE */
+.tbl{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.tbl-hd{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--gray);background:var(--bg2);white-space:nowrap;}
+td{padding:9px 14px;border-top:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;white-space:nowrap;}
+.b-gr{background:var(--green-l);color:var(--green);}
+.b-am{background:var(--amber-l);color:var(--amber);}
+.b-rd{background:var(--red-l);color:var(--red);}
+.b-bl{background:var(--blue-l);color:var(--blue);}
+.prog-w{display:flex;align-items:center;gap:8px;}
+.prog-bg{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.prog-f{height:100%;border-radius:2px;}
+.prog-l{font-size:11px;font-weight:500;width:30px;text-align:right;}
+
+/* PASS BARS */
+.pass-row{margin-bottom:9px;}
+.pass-meta{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:var(--text2);}
+.pass-bg{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.pass-fill{height:100%;border-radius:4px;}
+
+/* FORM */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg label{font-size:11px;color:var(--gray);font-weight:500;}
+.fi{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;outline:none;background:var(--white);color:var(--text);width:100%;}
+.fi:focus{border-color:var(--blue);}
+.fi[readonly]{background:var(--bg2);color:var(--gray);}
+textarea.fi{resize:none;height:60px;}
+.sec-lbl{font-size:12px;font-weight:700;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:10px;margin-top:6px;color:var(--text);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.chip{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);color:var(--gray);cursor:pointer;background:var(--white);}
+.chip.on{background:var(--blue-l);color:var(--blue);border-color:var(--blue-m);}
+.chk-grp{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:4px;}
+.chk-i{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;}
+.chk-i input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);}
+.radio-grp{display:flex;flex-wrap:wrap;gap:6px 16px;}
+.radio-i{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;}
+.radio-i input[type=radio]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);}
+.survey-type{display:flex;gap:8px;margin-bottom:14px;}
+.type-btn{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;cursor:pointer;text-align:center;background:var(--white);color:var(--gray);}
+.type-btn.on{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:600;}
+.btn-row{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+.btn{padding:7px 16px;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--text);}
+.btn:hover{background:var(--bg2);}
+.btn-p{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-p:hover{background:#0C447C;}
+.notice{font-size:11px;color:var(--gray);padding:9px 13px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--blue-m);}
+.other-input{display:none;margin-top:6px;}
+.other-input.on{display:block;}
+.inline-note{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+/* FOLLOWUP */
+.fu-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.fu-hd{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--gray);display:flex;}
+.fu-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-top:1px solid var(--border);}
+.fu-row:first-of-type{border-top:none;}
+.fu-av{width:32px;height:32px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.fu-info{flex:1;min-width:0;}
+.fu-name{font-size:13px;font-weight:600;}
+.fu-meta{font-size:11px;color:var(--gray);margin-top:2px;}
+.fu-acts{display:flex;gap:6px;flex-shrink:0;}
+.btn-sm{font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--text);}
+.btn-sm:hover{background:var(--bg2);}
+.btn-sm-p{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-sm-del{background:var(--red-l);color:var(--red);border-color:var(--red-l);}
+.btn-sm-del:hover{background:#f5c0c0;}
+.day-b{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;}
+.day-hot{background:var(--red-l);color:var(--red);}
+.day-warm{background:var(--amber-l);color:var(--amber);}
+.day-cool{background:var(--green-l);color:var(--green);}
+
+/* SURVEY DIST CHARTS */
+.dist-section{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.dist-title{font-size:13px;font-weight:600;margin-bottom:14px;}
+.dist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.dist-item{display:flex;flex-direction:column;gap:8px;}
+.dist-label{font-size:11px;font-weight:600;color:var(--text2);}
+.dist-bars{display:flex;flex-direction:column;gap:4px;}
+.dist-row{display:flex;align-items:center;gap:6px;}
+.dist-name{font-size:10px;color:var(--gray);width:70px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dist-bar-bg{flex:1;height:12px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.dist-bar-fill{height:100%;border-radius:3px;background:var(--blue-m);}
+.dist-num{font-size:10px;color:var(--gray);width:28px;text-align:right;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="page-login">
+  <div class="login-box">
+    <div class="login-logo"><em>G</em>BOXING 관리 포털</div>
+    <div class="login-sub">지점 상담 & 회원 관리 시스템</div>
+    <div class="lf"><label>아이디</label><input type="text" id="inp-id" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="lf"><label>비밀번호</label><input type="password" id="inp-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="login-err" id="lerr">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="hint-box">
+      <div class="hint-title">테스트 계정 (클릭하면 자동 입력)</div>
+      <div class="hint-row" onclick="fill('Gboxinghq','1234')"><span class="hint-name">본사 (임원)</span><span class="rtag rt-hq">임원</span><span class="hint-id">Gboxinghq / 1234</span></div>
+      <div class="hint-row" onclick="fill('gboxingjy','1234')"><span class="hint-name">주엽점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingjy / 1234</span></div>
+      <div class="hint-row" onclick="fill('gboxinghj','1234')"><span class="hint-name">화정점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinghj / 1234</span></div>
+      <div class="hint-row" onclick="fill('gboxingyd','1234')"><span class="hint-name">야당점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingyd / 1234</span></div>
+      <div class="hint-row" onclick="fill('gboxinggr','1234')"><span class="hint-name">구래점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinggr / 1234</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HQ SHELL ═══ -->
+<div id="page-hq" class="shell hidden">
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo"><em>G</em>BOXING 관리 포털</div>
+      <div class="sb-meta">
+        <div class="sb-av av-hq">본</div>
+        <div><div class="sb-uname">본사 (임원)</div></div>
+      </div>
+    </div>
+    <div class="nav-grp">전지점 현황</div>
+    <div class="ni act" onclick="hqGo('overview')" id="hn-overview"><span class="ni-ic">📊</span>전체 대시보드</div>
+    <div class="nav-grp">지점별</div>
+    <div class="ni" onclick="hqGo('jy')" id="hn-jy"><span class="ni-ic">📍</span>주엽점</div>
+    <div class="ni" onclick="hqGo('hj')" id="hn-hj"><span class="ni-ic">📍</span>화정점</div>
+    <div class="ni" onclick="hqGo('yd')" id="hn-yd"><span class="ni-ic">📍</span>야당점</div>
+    <div class="ni" onclick="hqGo('gr')" id="hn-gr"><span class="ni-ic">📍</span>구래점</div>
+    <div class="sb-foot"><button class="logout-btn" onclick="logout()">← 로그아웃</button></div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span class="tb-title" id="hq-title">전체 대시보드</span>
+      <span class="rtag rt-hq">본사 임원 뷰</span>
+    </div>
+    <div class="content">
+
+      <!-- HQ: OVERVIEW -->
+      <div id="hv-overview" class="view on">
+        <div class="kg4">
+          <div class="kpi"><div class="kpi-l">전체 유효회원</div><div class="kpi-v">1,248명</div><div class="kpi-s up">↑ 47명 이번 달</div></div>
+          <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v">724명</div><div class="kpi-s up">↑ 28명</div></div>
+          <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v">524명</div><div class="kpi-s up">↑ 19명</div></div>
+          <div class="kpi"><div class="kpi-l">이번 달 재등록</div><div class="kpi-v">183명</div><div class="kpi-s up">↑ 12% 전월</div></div>
+        </div>
+        <!-- 지점별 유효회원 & 재등록 with numbers -->
+        <div class="card">
+          <div class="card-hd"><span class="card-t">지점별 유효회원 & 재등록</span><span class="card-s">5월 기준</span></div>
+          <div style="margin-bottom:10px;">
+            <div class="mbr-row">
+              <span class="mbr-label">주엽점</span>
+              <div class="mbr-bar-bg">
+                <div class="mbr-bar-fill" style="width:100%;background:var(--blue-m);">유효 342명</div>
+              </div>
+              <div class="mbr-bar-bg" style="max-width:140px;">
+                <div class="mbr-bar-fill" style="width:100%;background:var(--green-m);">재등록 78명</div>
+              </div>
+            </div>
+            <div class="mbr-row">
+              <span class="mbr-label">화정점</span>
+              <div class="mbr-bar-bg">
+                <div class="mbr-bar-fill" style="width:93%;background:var(--blue-m);">유효 318명</div>
+              </div>
+              <div class="mbr-bar-bg" style="max-width:140px;">
+                <div class="mbr-bar-fill" style="width:78%;background:var(--green-m);">재등록 61명</div>
+              </div>
+            </div>
+            <div class="mbr-row">
+              <span class="mbr-label">야당점</span>
+              <div class="mbr-bar-bg">
+                <div class="mbr-bar-fill" style="width:85%;background:var(--blue-m);">유효 291명</div>
+              </div>
+              <div class="mbr-bar-bg" style="max-width:140px;">
+                <div class="mbr-bar-fill" style="width:62%;background:var(--green-m);">재등록 48명</div>
+              </div>
+            </div>
+            <div class="mbr-row">
+              <span class="mbr-label">구래점</span>
+              <div class="mbr-bar-bg">
+                <div class="mbr-bar-fill" style="width:87%;background:var(--blue-m);">유효 297명</div>
+              </div>
+              <div class="mbr-bar-bg" style="max-width:140px;">
+                <div class="mbr-bar-fill" style="width:87%;background:var(--green-m);">재등록 68명</div>
+              </div>
+            </div>
+          </div>
+          <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:var(--blue-m);"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:var(--green-m);"></div>재등록</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-t">전지점 유효회원 월별 변화</span><span class="card-s">2025년 1~12월</span></div>
+          <svg class="svg-line" id="svg-total" viewBox="0 0 600 95" style="height:95px;"></svg>
+          <div class="leg" style="margin-top:4px;">
+            <div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>주엽</div>
+            <div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>화정</div>
+            <div class="leg-i"><div class="leg-dot" style="background:#D85A30;"></div>야당</div>
+            <div class="leg-i"><div class="leg-dot" style="background:#7F77DD;"></div>구래</div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-hd"><span class="card-t">전체 성별 분포</span></div>
+            <div class="donut-wrap">
+              <canvas id="hq-donut" width="88" height="88"></canvas>
+              <div class="donut-leg">
+                <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 724명 (58%)</div>
+                <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 524명 (42%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><span class="card-t">전체 회원권 분포</span></div>
+            <div id="hq-pass-bars">
+              <div class="pass-row"><div class="pass-meta"><span>1개월권</span><span style="font-weight:600;">284명 (23%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:23%;background:var(--blue-m);"></div></div></div>
+              <div class="pass-row"><div class="pass-meta"><span>3개월권</span><span style="font-weight:600;">512명 (41%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:41%;background:var(--blue-m);"></div></div></div>
+              <div class="pass-row"><div class="pass-meta"><span>6개월권</span><span style="font-weight:600;">318명 (26%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:26%;background:var(--green-m);"></div></div></div>
+              <div class="pass-row"><div class="pass-meta"><span>PT 패키지</span><span style="font-weight:600;">134명 (11%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:11%;background:var(--green-m);"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HQ: 각 지점 대시보드 (동적으로 렌더링) -->
+      <div id="hv-branch-detail" class="view">
+        <div id="branch-detail-content"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BRANCH SHELL ═══ -->
+<div id="page-branch" class="shell hidden">
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo"><em>G</em>BOXING 관리 포털</div>
+      <div class="sb-meta">
+        <div class="sb-av av-br" id="br-av">주</div>
+        <div><div class="sb-uname" id="br-name">주엽점</div></div>
+      </div>
+    </div>
+    <div class="nav-grp">메뉴</div>
+    <div class="ni act" onclick="brGo('dash')" id="bn-dash"><span class="ni-ic">📊</span>지점 현황</div>
+    <div class="ni" onclick="brGo('input')" id="bn-input"><span class="ni-ic">✏️</span>상담 입력</div>
+    <div class="ni" onclick="brGo('fu')" id="bn-fu"><span class="ni-ic">🔔</span>팔로업 목록<span class="ni-badge" id="br-fu-badge">3</span></div>
+    <div class="sb-foot"><button class="logout-btn" onclick="logout()">← 로그아웃</button></div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span class="tb-title" id="br-page-title">지점 현황</span>
+      <span class="rtag rt-br" id="br-top-badge">주엽점</span>
+    </div>
+    <div class="content">
+
+      <!-- BRANCH: DASH -->
+      <div id="bv-dash" class="view on">
+        <div class="kg4">
+          <div class="kpi"><div class="kpi-l">총 유효회원</div><div class="kpi-v" id="b-total">342명</div><div class="kpi-s up">↑ 14명</div></div>
+          <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v" id="b-male">198명</div><div class="kpi-s up">↑ 8명</div></div>
+          <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v" id="b-female">144명</div><div class="kpi-s up">↑ 6명</div></div>
+          <div class="kpi"><div class="kpi-l">재등록 회원</div><div class="kpi-v" id="b-renew">78명</div><div class="kpi-s up">↑ 9명</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-hd"><span class="card-t">월별 유효회원 추이</span><span class="card-s" id="br-chart-sub">주엽점 · 2025</span></div>
+            <div class="bar-chart" id="br-bars"></div>
+            <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>재등록</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><span class="card-t">성별 분포</span></div>
+            <div class="donut-wrap">
+              <canvas id="br-donut" width="88" height="88"></canvas>
+              <div class="donut-leg">
+                <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div><span id="b-male-pct">남성 58%</span></div>
+                <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div><span id="b-female-pct">여성 42%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BRANCH: INPUT -->
+      <div id="bv-input" class="view">
+        <div class="card">
+          <div class="card-hd"><span class="card-t">상담 유형 선택</span></div>
+          <div class="survey-type">
+            <div class="type-btn on" onclick="setType('new',this)">🆕 신규 상담</div>
+            <div class="type-btn" onclick="setType('renew',this)">🔄 재등록 상담</div>
+          </div>
+
+          <!-- 신규 서베이 -->
+          <div id="sec-new">
+            <div class="sec-lbl">① 기본 정보</div>
+            <div class="fg2" style="margin-bottom:20px;">
+              <div class="fg"><label>상담 날짜</label><input type="date" class="fi"></div>
+              <div class="fg"><label>담당자</label><input type="text" class="fi" id="br-coach-f" placeholder="담당자 이름 입력"></div>
+              <div class="fg"><label>이름</label><input type="text" class="fi" placeholder="홍길동"></div>
+              <div class="fg"><label>성별</label><select class="fi"><option>선택</option><option>남성</option><option>여성</option></select></div>
+              <div class="fg"><label>생년월일</label><input type="date" class="fi"></div>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">② 방문 경로</div>
+            <div class="chk-grp" style="margin-bottom:6px;">
+              <label class="chk-i"><input type="checkbox" name="path" onchange="toggleOther(this,'path-naver')">네이버 검색</label>
+              <label class="chk-i"><input type="checkbox" name="path">유튜브</label>
+              <label class="chk-i"><input type="checkbox" name="path">인스타그램</label>
+              <label class="chk-i"><input type="checkbox" name="path">지인 소개</label>
+              <label class="chk-i"><input type="checkbox" name="path">간판</label>
+              <label class="chk-i"><input type="checkbox" name="path" onchange="toggleOther(this,'path-etc')">기타</label>
+            </div>
+            <div id="path-naver" class="other-input"><input type="text" class="fi" placeholder="네이버 검색어 입력"></div>
+            <div id="path-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 경로 입력"></div>
+
+            <div class="sec-lbl" style="margin-top:20px;">③ 운동 경력</div>
+            <div style="margin-bottom:20px;">
+              <textarea class="fi" style="height:72px;" placeholder="예) 헬스 2년, 수영 6개월 경험 있음. 복싱은 처음."></textarea>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">④ 운동 목적</div>
+            <div class="chk-grp" style="margin-bottom:20px;">
+              <label class="chk-i"><input type="checkbox">다이어트/체중감량</label>
+              <label class="chk-i"><input type="checkbox">체력 증진</label>
+              <label class="chk-i"><input type="checkbox">스트레스 해소</label>
+              <label class="chk-i"><input type="checkbox">새로운 도전/취미</label>
+              <label class="chk-i"><input type="checkbox">건강 관리</label>
+              <label class="chk-i"><input type="checkbox">선수 준비</label>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">⑤ 등록 망설이는 이유</div>
+            <div class="chk-grp" style="margin-bottom:6px;">
+              <label class="chk-i"><input type="checkbox">가격</label>
+              <label class="chk-i"><input type="checkbox">거리</label>
+              <label class="chk-i"><input type="checkbox">무서울 것 같아서</label>
+              <label class="chk-i"><input type="checkbox">운동 경험 없음</label>
+              <label class="chk-i"><input type="checkbox">시간</label>
+              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'hesit-etc')">기타</label>
+            </div>
+            <div id="hesit-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 이유 입력"></div>
+
+            <div class="sec-lbl" style="margin-top:20px;">⑥ G복싱을 찾아온 이유</div>
+            <div class="chk-grp" style="margin-bottom:6px;">
+              <label class="chk-i"><input type="checkbox">관장님</label>
+              <label class="chk-i"><input type="checkbox">코치진</label>
+              <label class="chk-i"><input type="checkbox">분위기</label>
+              <label class="chk-i"><input type="checkbox">시설</label>
+              <label class="chk-i"><input type="checkbox">가격</label>
+              <label class="chk-i"><input type="checkbox">프로그램</label>
+              <label class="chk-i"><input type="checkbox">후기</label>
+              <label class="chk-i"><input type="checkbox">위치</label>
+              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'reason-etc')">기타</label>
+            </div>
+            <div id="reason-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 이유 입력"></div>
+
+            <div class="sec-lbl" style="margin-top:20px;">⑦ 운동 가능 일정</div>
+            <div class="fg2" style="margin-bottom:20px;">
+              <div class="fg"><label>월 운동 가능 횟수</label>
+                <div class="radio-grp" style="margin-top:8px;">
+                  <label class="radio-i"><input type="radio" name="freq">주 1~3회</label>
+                  <label class="radio-i"><input type="radio" name="freq">주 3회 이상</label>
+                  <label class="radio-i"><input type="radio" name="freq">아직 모르겠다</label>
+                </div>
+              </div>
+              <div class="fg"><label>운동 가능 시간대</label>
+                <div class="radio-grp" style="margin-top:8px;flex-wrap:wrap;">
+                  <label class="radio-i"><input type="radio" name="time">오전</label>
+                  <label class="radio-i"><input type="radio" name="time">오후</label>
+                  <label class="radio-i"><input type="radio" name="time">저녁</label>
+                  <label class="radio-i"><input type="radio" name="time">상관없음</label>
+                  <label class="radio-i"><input type="radio" name="time">아직 모르겠다</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">⑧ 상담 결과</div>
+            <div class="fg2" style="margin-bottom:10px;">
+              <div class="fg"><label>전환 여부</label><select class="fi" id="result-sel" onchange="toggleConvert(this.value)"><option value="">선택</option><option value="yes">✅ 전환 (등록)</option><option value="fu">🔔 팔로업 필요</option><option value="no">미전환</option></select></div>
+              <div class="fg" id="convert-pass-wrap" style="display:none;"><label>전환 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
+            </div>
+            <div class="fg" id="no-convert-wrap" style="display:none;margin-bottom:10px;"><label>비전환 / 팔로업 사유</label><input type="text" class="fi" placeholder="사유 입력 (예: 가격 고민 중, 일정 조율 필요 등)"></div>
+            <div class="fg full" style="margin-bottom:4px;margin-top:16px;"><label>기타 메모</label><textarea class="fi" placeholder="특이사항, 추가 관찰 내용 등 자유 기록"></textarea></div>
+          </div>
+
+          <!-- 재등록 서베이 -->
+          <div id="sec-renew" class="hidden">
+            <div class="sec-lbl">① 기본 정보</div>
+            <div class="fg2" style="margin-bottom:20px;">
+              <div class="fg"><label>상담 날짜</label><input type="date" class="fi"></div>
+              <div class="fg"><label>담당자</label><input type="text" class="fi" id="br-coach-r" placeholder="담당자 이름 입력"></div>
+              <div class="fg"><label>이름</label><input type="text" class="fi" placeholder="홍길동"></div>
+              <div class="fg"><label>성별</label><select class="fi"><option>선택</option><option>남성</option><option>여성</option></select></div>
+              <div class="fg"><label>생년월일</label><input type="date" class="fi"></div>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">② 연장 회원권</div>
+            <div class="fg2" style="margin-bottom:20px;">
+              <div class="fg"><label>기존 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
+              <div class="fg"><label>연장 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">③ G복싱에서 가장 만족한 것</div>
+            <div class="chk-grp" style="margin-bottom:6px;">
+              <label class="chk-i"><input type="checkbox">운동 효과</label>
+              <label class="chk-i"><input type="checkbox">체력 향상</label>
+              <label class="chk-i"><input type="checkbox">체중 감량</label>
+              <label class="chk-i"><input type="checkbox">재미</label>
+              <label class="chk-i"><input type="checkbox">스트레스 해소</label>
+              <label class="chk-i"><input type="checkbox">사람들</label>
+              <label class="chk-i"><input type="checkbox">코치진</label>
+              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'sat-etc')">기타</label>
+            </div>
+            <div id="sat-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 내용 입력"></div>
+
+            <div class="sec-lbl" style="margin-top:20px;">④ 다음 운동 목적</div>
+            <div class="chk-grp" style="margin-bottom:20px;">
+              <label class="chk-i"><input type="checkbox">체중 감량</label>
+              <label class="chk-i"><input type="checkbox">꾸준한 운동 루틴</label>
+              <label class="chk-i"><input type="checkbox">체력 증진</label>
+              <label class="chk-i"><input type="checkbox">실전 기술</label>
+              <label class="chk-i"><input type="checkbox">기타</label>
+            </div>
+
+            <div class="sec-lbl" style="margin-top:20px;">⑤ 앞으로 바라는 점</div>
+            <div class="chk-grp" style="margin-bottom:6px;">
+              <label class="chk-i"><input type="checkbox">복싱 기술 세부 코칭</label>
+              <label class="chk-i"><input type="checkbox">다양한 운동 와드</label>
+              <label class="chk-i"><input type="checkbox">스파링 및 실전 기술</label>
+              <label class="chk-i"><input type="checkbox">생활습관 관련 조언</label>
+              <label class="chk-i"><input type="checkbox">식단 관련 조언</label>
+              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'wish-etc')">기타</label>
+            </div>
+            <div id="wish-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 내용 입력"></div>
+
+            <div class="fg full" style="margin-bottom:4px;margin-top:4px;"><label>관리자 기타 메모</label><textarea class="fi" placeholder="추가 관찰, 특이사항 등 자유 기록"></textarea></div>
+          </div>
+
+          <div class="btn-row"><button class="btn">초기화</button><button class="btn btn-p" onclick="saveConsult()">저장 & 제출</button></div>
+        </div>
+      </div>
+
+      <!-- BRANCH: FOLLOWUP -->
+      <div id="bv-fu" class="view">
+        <div class="kg3">
+          <div class="kpi"><div class="kpi-l">팔로업 대기</div><div class="kpi-v dn" id="fu-cnt">3건</div><div class="kpi-s nt">미등록 추적</div></div>
+          <div class="kpi"><div class="kpi-l">긴급 (7일↑)</div><div class="kpi-v" id="fu-urg">1건</div><div class="kpi-s dn">즉시 연락</div></div>
+          <div class="kpi"><div class="kpi-l">이번 주 목표</div><div class="kpi-v">2명</div><div class="kpi-s up">1명 달성</div></div>
+        </div>
+        <div class="fu-wrap" id="br-fu"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const ACCTS={
+  'Gboxinghq':{pw:'1234',role:'hq'},
+  'gboxingjy':{pw:'1234',role:'br',name:'주엽점',av:'주',total:342,male:198,female:144,renew:78,mp:58,key:'jy'},
+  'gboxinghj':{pw:'1234',role:'br',name:'화정점',av:'화',total:318,male:181,female:137,renew:61,mp:57,key:'hj'},
+  'gboxingyd':{pw:'1234',role:'br',name:'야당점',av:'야',total:291,male:175,female:116,renew:48,mp:60,key:'yd'},
+  'gboxinggr':{pw:'1234',role:'br',name:'구래점',av:'구',total:297,male:170,female:127,renew:68,mp:57,key:'gr'},
+};
+
+const PASS_COLS=['#378ADD','#1D9E75','#D85A30','#7F77DD'];
+const BRANCH_DATA={
+  jy:{name:'주엽점',col:'#378ADD',total:342,male:198,female:144,renew:78,mp:58,
+    monthly:[298,310,318,325,328,332,335,338,340,341,342,342],
+    renews:[58,63,67,70,71,73,74,75,76,77,78,78],
+    pass:[{n:'1개월권',v:72},{n:'2~3개월권',v:138},{n:'6개월권 이상',v:89},{n:'PT',v:43}],
+    passMonthly:[
+      [58,61,63,65,66,67,68,69,70,71,71,72],
+      [110,115,118,121,124,127,129,131,133,135,137,138],
+      [72,75,77,79,81,82,83,84,86,87,88,89],
+      [35,37,38,39,40,41,41,42,42,43,43,43],
+    ],
+    purpose:[{n:'다이어트',v:38},{n:'체력',v:22},{n:'스트레스',v:17},{n:'취미',v:12},{n:'건강',v:8},{n:'선수',v:3}],
+    path:[{n:'네이버',v:35},{n:'인스타',v:28},{n:'지인',v:20},{n:'유튜브',v:10},{n:'간판',v:7}],
+    age:[{n:'20대',v:45},{n:'30대',v:32},{n:'40대',v:16},{n:'50대+',v:7}],
+    staff:[
+      {name:'김성민',consult:38,convert:17,renew:8},
+      {name:'이지현',consult:29,convert:11,renew:6},
+      {name:'박준호',consult:24,convert:7,renew:4},
+    ]},
+  hj:{name:'화정점',col:'#1D9E75',total:318,male:181,female:137,renew:61,mp:57,
+    monthly:[285,292,298,301,305,307,309,311,313,315,317,318],
+    renews:[45,49,51,52,54,55,56,57,58,59,60,61],
+    pass:[{n:'1개월권',v:65},{n:'2~3개월권',v:121},{n:'6개월권 이상',v:84},{n:'PT',v:48}],
+    passMonthly:[
+      [52,54,56,57,58,59,60,61,62,63,64,65],
+      [98,102,105,108,110,112,114,116,117,118,120,121],
+      [68,70,72,74,76,77,78,79,80,81,83,84],
+      [38,40,41,42,43,44,44,45,46,47,47,48],
+    ],
+    purpose:[{n:'다이어트',v:42},{n:'체력',v:19},{n:'스트레스',v:15},{n:'취미',v:14},{n:'건강',v:7},{n:'선수',v:3}],
+    path:[{n:'네이버',v:40},{n:'지인',v:24},{n:'인스타',v:18},{n:'간판',v:12},{n:'유튜브',v:6}],
+    age:[{n:'20대',v:38},{n:'30대',v:35},{n:'40대',v:20},{n:'50대+',v:7}],
+    staff:[
+      {name:'최유나',consult:34,convert:15,renew:7},
+      {name:'정도현',consult:28,convert:9,renew:5},
+    ]},
+  yd:{name:'야당점',col:'#D85A30',total:291,male:175,female:116,renew:48,mp:60,
+    monthly:[305,299,296,295,295,294,294,293,292,292,291,291],
+    renews:[52,50,50,49,49,48,48,48,48,48,48,48],
+    pass:[{n:'1개월권',v:80},{n:'2~3개월권',v:118},{n:'6개월권 이상',v:65},{n:'PT',v:28}],
+    passMonthly:[
+      [85,84,83,82,82,81,81,80,80,80,80,80],
+      [122,121,120,119,119,118,118,118,118,118,118,118],
+      [68,67,66,66,66,65,65,65,65,65,65,65],
+      [30,29,29,28,28,28,28,28,28,28,28,28],
+    ],
+    purpose:[{n:'다이어트',v:35},{n:'체력',v:28},{n:'스트레스',v:18},{n:'취미',v:10},{n:'건강',v:7},{n:'선수',v:2}],
+    path:[{n:'지인',v:38},{n:'네이버',v:28},{n:'간판',v:18},{n:'인스타',v:12},{n:'유튜브',v:4}],
+    age:[{n:'20대',v:30},{n:'30대',v:38},{n:'40대',v:22},{n:'50대+',v:10}],
+    staff:[
+      {name:'한민수',consult:31,convert:10,renew:5},
+      {name:'오서진',consult:22,convert:6,renew:3},
+    ]},
+  gr:{name:'구래점',col:'#7F77DD',total:297,male:170,female:127,renew:68,mp:57,
+    monthly:[238,251,258,263,268,272,276,281,285,289,293,297],
+    renews:[38,44,48,51,54,57,59,61,63,65,67,68],
+    pass:[{n:'1개월권',v:67},{n:'2~3개월권',v:135},{n:'6개월권 이상',v:80},{n:'PT',v:15}],
+    passMonthly:[
+      [48,51,53,55,57,58,60,61,63,64,66,67],
+      [95,101,106,110,114,117,120,123,126,129,132,135],
+      [58,62,65,68,70,72,73,75,76,77,79,80],
+      [8,9,10,11,12,12,13,13,13,14,14,15],
+    ],
+    purpose:[{n:'다이어트',v:44},{n:'체력',v:20},{n:'스트레스',v:14},{n:'취미',v:13},{n:'건강',v:7},{n:'선수',v:2}],
+    path:[{n:'인스타',v:42},{n:'네이버',v:25},{n:'유튜브',v:18},{n:'지인',v:10},{n:'간판',v:5}],
+    age:[{n:'20대',v:52},{n:'30대',v:28},{n:'40대',v:14},{n:'50대+',v:6}],
+    staff:[
+      {name:'윤재호',consult:41,convert:19,renew:9},
+      {name:'강미래',consult:33,convert:13,renew:7},
+      {name:'임지수',consult:18,convert:5,renew:2},
+    ]},
+};
+
+const MONTHS12=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+let fuData=[
+  {name:'김재원',days:8,meta:'체력/건강 · 1개월 관심'},
+  {name:'나현우',days:5,meta:'스트레스 해소 · PT 관심'},
+  {name:'한지민',days:2,meta:'다이어트 · 3개월 관심'},
+];
+
+function fill(id,pw){document.getElementById('inp-id').value=id;document.getElementById('inp-pw').value=pw;}
+
+function doLogin(){
+  const id=document.getElementById('inp-id').value.trim();
+  const pw=document.getElementById('inp-pw').value.trim();
+  const a=ACCTS[id];
+  if(!a||a.pw!==pw){document.getElementById('lerr').style.display='block';return;}
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('page-login').style.display='none';
+  if(a.role==='hq'){
+    document.getElementById('page-hq').classList.remove('hidden');
+    initHQ();
+  } else {
+    initBranch(a);
+    document.getElementById('page-branch').classList.remove('hidden');
+  }
+}
+
+function logout(){
+  ['page-hq','page-branch'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('page-login').style.display='flex';
+  document.getElementById('inp-id').value='';
+  document.getElementById('inp-pw').value='';
+}
+
+/* ─── HQ ─── */
+const HQ_NAVS=['overview','jy','hj','yd','gr'];
+function hqGo(v){
+  HQ_NAVS.forEach(id=>{
+    const n=document.getElementById('hn-'+id);
+    if(n)n.classList.toggle('act',id===v);
+  });
+  if(v==='overview'){
+    document.getElementById('hv-overview').classList.add('on');
+    document.getElementById('hv-branch-detail').classList.remove('on');
+    document.getElementById('hq-title').textContent='전체 대시보드';
+  } else {
+    document.getElementById('hv-overview').classList.remove('on');
+    document.getElementById('hv-branch-detail').classList.add('on');
+    const bd=BRANCH_DATA[v];
+    document.getElementById('hq-title').textContent=bd.name+' 대시보드';
+    renderBranchDetail(bd);
+  }
+}
+
+function initHQ(){
+  drawDonut('hq-donut',[58,42],['#378ADD','#E87DBB']);
+  drawLine12('svg-total',[
+    {col:'#378ADD',data:BRANCH_DATA.jy.monthly},
+    {col:'#1D9E75',data:BRANCH_DATA.hj.monthly},
+    {col:'#D85A30',data:BRANCH_DATA.yd.monthly},
+    {col:'#7F77DD',data:BRANCH_DATA.gr.monthly},
+  ]);
+}
+
+function renderBranchDetail(bd){
+  const fp=100-bd.mp;
+  const passMax=Math.max(...bd.pass.map(p=>p.v));
+  const allSeries=[
+    {col:bd.col,data:bd.monthly},
+    {col:bd.col+'88',data:bd.renews},
+  ];
+  const purposeMax=Math.max(...bd.purpose.map(d=>d.v));
+  const pathMax=Math.max(...bd.path.map(d=>d.v));
+  const ageMax=Math.max(...bd.age.map(d=>d.v));
+
+  document.getElementById('branch-detail-content').innerHTML=`
+  <div style="display:flex;flex-direction:column;gap:13px;">
+    <div class="kg4">
+      <div class="kpi"><div class="kpi-l">유효회원</div><div class="kpi-v">${bd.total}명</div><div class="kpi-s up">↑ 최근 1개월</div></div>
+      <div class="kpi"><div class="kpi-l">남성</div><div class="kpi-v">${bd.male}명</div><div class="kpi-s nt">${bd.mp}%</div></div>
+      <div class="kpi"><div class="kpi-l">여성</div><div class="kpi-v">${bd.female}명</div><div class="kpi-s nt">${fp}%</div></div>
+      <div class="kpi"><div class="kpi-l">재등록</div><div class="kpi-v">${bd.renew}명</div><div class="kpi-s up">재등록률 ${Math.round(bd.renew/bd.total*100)}%</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-t">유효회원 & 재등록 12개월 추이</span><span class="card-s">${bd.name} · 2025년</span></div>
+      <svg class="svg-line" id="det-line" viewBox="0 0 600 95" style="height:95px;"></svg>
+      <div class="leg" style="margin-top:4px;">
+        <div class="leg-i"><div class="leg-dot" style="background:${bd.col};"></div>유효회원</div>
+        <div class="leg-i"><div class="leg-dot" style="background:${bd.col}88;"></div>재등록</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-t">회원권별 12개월 추이</span><span class="card-s">${bd.name} · 2025년</span></div>
+      <svg class="svg-line" id="det-pass-line" viewBox="0 0 600 95" style="height:95px;"></svg>
+      <div class="leg" style="margin-top:4px;">
+        ${bd.pass.map((p,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${PASS_COLS[i]};"></div>${p.n}</div>`).join('')}
+      </div>
+    </div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-hd"><span class="card-t">회원권 분포 (이번 달)</span></div>
+        ${bd.pass.map((p,i)=>`
+        <div class="pass-row">
+          <div class="pass-meta"><span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PASS_COLS[i]};flex-shrink:0;"></span>${p.n}</span><span style="font-weight:600;">${p.v}명 (${Math.round(p.v/bd.total*100)}%)</span></div>
+          <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(p.v/passMax*100)}%;background:${PASS_COLS[i]};"></div></div>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-t">성별 분포</span></div>
+        <div class="donut-wrap">
+          <canvas id="det-donut" width="88" height="88"></canvas>
+          <div class="donut-leg">
+            <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 ${bd.male}명 (${bd.mp}%)</div>
+            <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 ${bd.female}명 (${fp}%)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row3">
+      <div class="card">
+        <div class="card-hd"><span class="card-t">운동 목적 분포</span></div>
+        ${bd.purpose.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+          <span class="dist-name">${d.n}</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/purposeMax*100)}%;background:${bd.col};"></div></div>
+          <span class="dist-num">${d.v}%</span>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-t">방문 경로 분포</span></div>
+        ${bd.path.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+          <span class="dist-name">${d.n}</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/pathMax*100)}%;background:${bd.col};"></div></div>
+          <span class="dist-num">${d.v}%</span>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-t">나이대 분포</span></div>
+        ${bd.age.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+          <span class="dist-name">${d.n}</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/ageMax*100)}%;background:${bd.col};"></div></div>
+          <span class="dist-num">${d.v}%</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="tbl">
+      <div class="tbl-hd">
+        <span style="font-size:13px;font-weight:600;">담당자별 상담 & 전환 현황</span>
+        <span class="card-s">이번 달 기준</span>
+      </div>
+      <table>
+        <tr>
+          <th>담당자</th>
+          <th>총 상담</th>
+          <th>신규 전환</th>
+          <th>재등록</th>
+          <th>전체 성공</th>
+          <th>전환율</th>
+          <th>이번 달 추이</th>
+        </tr>
+        ${bd.staff.map(s=>{
+          const total=s.consult;
+          const success=s.convert+s.renew;
+          const rate=Math.round(success/total*100);
+          const rateCol=rate>=45?'#27500A':rate>=30?'#185FA5':'#791F1F';
+          const rateBg=rate>=45?'#EAF3DE':rate>=30?'#E6F1FB':'#FCEBEB';
+          const barW=Math.round(rate/100*100);
+          return `<tr>
+            <td style="font-weight:600;">${s.name}</td>
+            <td>${total}명</td>
+            <td>${s.convert}명</td>
+            <td>${s.renew}명</td>
+            <td style="font-weight:600;">${success}명</td>
+            <td>
+              <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:${rateBg};color:${rateCol};">${rate}%</span>
+            </td>
+            <td style="min-width:100px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+                  <div style="width:${barW}%;height:100%;background:${rateCol};border-radius:3px;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--gray);width:28px;">${rate}%</span>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+        <tr style="background:var(--bg2);">
+          <td style="font-weight:700;color:var(--text2);">합계</td>
+          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.consult,0)}명</td>
+          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.convert,0)}명</td>
+          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.renew,0)}명</td>
+          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.convert+s.renew,0)}명</td>
+          <td colspan="2">
+            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--blue-l);color:var(--blue);">
+              전체 ${Math.round(bd.staff.reduce((a,s)=>a+s.convert+s.renew,0)/bd.staff.reduce((a,s)=>a+s.consult,0)*100)}%
+            </span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>`;
+
+  drawLine12('det-line',[
+    {col:bd.col,data:bd.monthly},
+    {col:bd.col+'88',data:bd.renews},
+  ]);
+  drawLine12('det-pass-line',
+    bd.passMonthly.map((data,i)=>({col:PASS_COLS[i],data}))
+  );
+  drawDonut('det-donut',[bd.mp,fp],['#378ADD','#E87DBB']);
+}
+
+/* ─── BRANCH ─── */
+function brGo(v){
+  ['dash','input','fu'].forEach(id=>{
+    const el=document.getElementById('bv-'+id);
+    if(el)el.className='view'+(id===v?' on':'');
+    const n=document.getElementById('bn-'+id);
+    if(n)n.classList.toggle('act',id===v);
+  });
+  document.getElementById('br-page-title').textContent={dash:'지점 현황',input:'상담 입력',fu:'팔로업 목록'}[v];
+}
+
+function initBranch(a){
+  document.getElementById('br-av').textContent=a.av;
+  document.getElementById('br-name').textContent=a.name;
+  document.getElementById('br-top-badge').textContent=a.name;
+  document.getElementById('b-total').textContent=a.total+'명';
+  document.getElementById('b-male').textContent=a.male+'명';
+  document.getElementById('b-female').textContent=a.female+'명';
+  document.getElementById('b-renew').textContent=a.renew+'명';
+  document.getElementById('br-chart-sub').textContent=a.name+' · 2025';
+  // 담당자는 직접 이름 입력
+  const fp=100-a.mp;
+  document.getElementById('b-male-pct').textContent='남성 '+a.mp+'%';
+  document.getElementById('b-female-pct').textContent='여성 '+fp+'%';
+  const bd=BRANCH_DATA[a.key];
+  drawBars5('br-bars',bd.monthly.slice(0,5),bd.renews.slice(0,5));
+  drawDonut('br-donut',[a.mp,fp],['#378ADD','#E87DBB']);
+  renderBranchFU();
+}
+
+function drawBars5(id,totals,renews){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const labs=['1월','2월','3월','4월','5월'];
+  const mx=Math.max(...totals);
+  el.innerHTML=labs.map((l,i)=>`<div class="bar-grp">
+    <div class="bar-pair">
+      <div class="bar b-blue" style="height:${Math.round(totals[i]/mx*62)}px;"></div>
+      <div class="bar b-green" style="height:${Math.round(renews[i]/mx*62)}px;"></div>
+    </div>
+    <div class="bar-lbl">${l}</div>
+  </div>`).join('');
+}
+
+function setType(t,el){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sec-new').classList.toggle('hidden',t!=='new');
+  document.getElementById('sec-renew').classList.toggle('hidden',t!=='renew');
+}
+
+function toggleOther(cb,targetId){
+  const el=document.getElementById(targetId);
+  if(el)el.classList.toggle('on',cb.checked);
+}
+
+function toggleConvert(val){
+  document.getElementById('convert-pass-wrap').style.display=val==='yes'?'':'none';
+  document.getElementById('no-convert-wrap').style.display=(val==='no'||val==='fu')?'':'none';
+}
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbxDc50auoUcN8ta1-y7rf0sHDfxbkbl3UlcMYMa2glXgECYLzZvRHmLcn5abXGv10waYA/exec';
+
+function getChecked(name){
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el=>el.parentElement.textContent.trim()).join(', ');
+}
+function getCheckedClass(cls){
+  return Array.from(document.querySelectorAll(`.${cls} .chip.on`)).map(el=>el.textContent.trim()).join(', ');
+}
+function getRadio(name){
+  const el=document.querySelector(`input[name="${name}"]:checked`);
+  return el?el.parentElement.textContent.trim():'';
+}
+function getVal(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+function getOther(id){ const el=document.getElementById(id); return (el&&el.classList.contains('on'))?el.querySelector('input').value.trim():''; }
+
+async function saveConsult(){
+  const surveyType = document.querySelector('.type-btn.on').textContent.includes('신규') ? 'new' : 'renew';
+  const branch = currentUser ? currentUser.name : '';
+  const resultVal = getVal('result-sel');
+
+  let payload = { type: surveyType, branch };
+
+  if(surveyType === 'new'){
+    // 날짜/기본정보
+    const dateInputs = document.querySelectorAll('#sec-new input[type=date]');
+    payload.date    = dateInputs[0]?.value || '';
+    payload.staff   = getVal('br-coach-f');
+    // 이름/성별/생년월일
+    const textInputs = document.querySelectorAll('#sec-new .fg2 input[type=text], #sec-new .fg2 input[type=number]');
+    payload.name   = document.querySelector('#sec-new input[placeholder="홍길동"]')?.value.trim() || '';
+    payload.gender = document.querySelector('#sec-new select')?.value || '';
+    payload.birth  = dateInputs[1]?.value || '';
+    // 방문경로
+    const pathChecked = Array.from(document.querySelectorAll('input[name="path"]:checked')).map(el=>el.parentElement.textContent.trim());
+    payload.path      = pathChecked.join(', ');
+    payload.path_note = (getOther('path-naver')||'') + ' ' + (getOther('path-etc')||'');
+    // 운동경력
+    payload.career = document.querySelector('#sec-new textarea')?.value.trim() || '';
+    // 운동목적
+    payload.purpose = Array.from(document.querySelectorAll('#sec-new .chips .chip.on')).map(el=>el.textContent.trim()).join(', ');
+    // 망설이는이유
+    const hesChecked = Array.from(document.querySelectorAll('input[name="hesit"]:checked')).map(el=>el.parentElement.textContent.trim());
+    payload.hesitate      = hesChecked.join(', ');
+    payload.hesitate_note = getOther('hesit-etc');
+    // 찾아온이유
+    const reasonChecked = Array.from(document.querySelectorAll('input[name="reason"]:checked')).map(el=>el.parentElement.textContent.trim());
+    payload.reason      = reasonChecked.join(', ');
+    payload.reason_note = getOther('reason-etc');
+    // 일정
+    payload.freq = getRadio('freq');
+    payload.time = getRadio('time');
+    // 결과
+    payload.result    = document.getElementById('result-sel')?.value || '';
+    payload.pass      = document.querySelector('#convert-pass-wrap select')?.value || '';
+    payload.no_reason = document.querySelector('#no-convert-wrap input')?.value.trim() || '';
+    // 메모
+    payload.memo = document.querySelectorAll('#sec-new textarea')[1]?.value.trim() || '';
+
+  } else {
+    // 재등록
+    const dateInputs = document.querySelectorAll('#sec-renew input[type=date]');
+    payload.date  = dateInputs[0]?.value || '';
+    payload.staff = getVal('br-coach-r');
+    payload.name   = document.querySelector('#sec-renew input[placeholder="홍길동"]')?.value.trim() || '';
+    payload.gender = document.querySelector('#sec-renew select')?.value || '';
+    payload.birth  = dateInputs[1]?.value || '';
+    const selects  = document.querySelectorAll('#sec-renew select');
+    payload.old_pass = selects[1]?.value || '';
+    payload.new_pass = selects[2]?.value || '';
+    payload.satisfied      = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(1) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
+    payload.satisfied_note = getOther('sat-etc');
+    payload.next_goal = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(2) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
+    payload.wishes      = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(3) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
+    payload.wishes_note = getOther('wish-etc');
+    payload.memo = document.querySelector('#sec-renew textarea')?.value.trim() || '';
+  }
+
+  // 버튼 로딩 상태
+  const btn = document.querySelector('#bv-input .btn-p');
+  const original = btn.textContent;
+  btn.textContent = '저장 중...';
+  btn.disabled = true;
+
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    // 팔로업이면 로컬 목록에도 추가
+    if(payload.result === '팔로업 필요' || payload.result === '미전환'){
+      fuData.unshift({
+        name: payload.name || '신규 상담자',
+        days: 0,
+        meta: (payload.no_reason || '사유 미입력') + ' · 방금 입력'
+      });
+      renderBranchFU();
+    }
+
+    btn.textContent = '✅ 저장 완료!';
+    setTimeout(()=>{ btn.textContent=original; btn.disabled=false; }, 2000);
+
+    // 팔로업이면 자동 이동
+    if(payload.result === '팔로업 필요' || payload.result === '미전환'){
+      setTimeout(()=>brGo('fu'), 1500);
+    }
+
+  } catch(err) {
+    btn.textContent = '❌ 오류 발생';
+    btn.disabled = false;
+    console.error(err);
+    setTimeout(()=>{ btn.textContent=original; }, 2000);
+  }
+}
+
+function renderBranchFU(){
+  const el=document.getElementById('br-fu');
+  if(!el)return;
+  const cnt=fuData.length;
+  const urg=fuData.filter(d=>d.days>=7).length;
+  document.getElementById('fu-cnt').textContent=cnt+'건';
+  document.getElementById('fu-urg').textContent=urg+'건';
+  document.getElementById('br-fu-badge').textContent=cnt;
+  el.innerHTML=`<div class="fu-hd"><span>회원 정보</span><span style="margin-left:auto;">경과 / 액션</span></div>`
+    +(cnt===0
+    ?`<div style="padding:24px;text-align:center;color:var(--gray);font-size:13px;">팔로업 대상이 없습니다 🎉</div>`
+    :fuData.map((d,i)=>`<div class="fu-row">
+      <div class="fu-av">${d.name[0]+d.name[1]}</div>
+      <div class="fu-info">
+        <div class="fu-name">${d.name} <span class="day-b ${d.days>=7?'day-hot':d.days>=4?'day-warm':'day-cool'}">${d.days}일 경과</span></div>
+        <div class="fu-meta">${d.meta}</div>
+      </div>
+      <div class="fu-acts">
+        <button class="btn-sm btn-sm-p" onclick="markDone(${i})">연락 완료</button>
+        <button class="btn-sm btn-sm-del" onclick="delFU(${i})">삭제</button>
+      </div>
+    </div>`).join(''));
+}
+
+function delFU(i){if(confirm(fuData[i].name+' 팔로업을 삭제할까요?')){fuData.splice(i,1);renderBranchFU();}}
+function markDone(i){fuData.splice(i,1);renderBranchFU();}
+
+/* ─── CHARTS ─── */
+function drawDonut(id,vals,cols){
+  const cv=document.getElementById(id);
+  if(!cv||!cv.getContext)return;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,88,88);
+  let s=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    const a=v/100*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(44,44);ctx.arc(44,44,38,s,s+a);ctx.closePath();
+    ctx.fillStyle=cols[i];ctx.fill();s+=a;
+  });
+  ctx.beginPath();ctx.arc(44,44,22,0,Math.PI*2);
+  ctx.fillStyle='#ffffff';ctx.fill();
+}
+
+function drawLine12(id,series){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const W=600,H=95,pL=10,pR=10,pT=8,pB=16;
+  const allV=series.flatMap(s=>s.data);
+  const mn=Math.min(...allV)-5,mx=Math.max(...allV)+5;
+  const n=MONTHS12.length;
+  const xf=i=>pL+(W-pL-pR)/(n-1)*i;
+  const yf=v=>pT+(1-(v-mn)/(mx-mn))*(H-pT-pB);
+  let svg='';
+  series.forEach(s=>{
+    const pts=s.data.map((v,i)=>`${xf(i).toFixed(1)},${yf(v).toFixed(1)}`).join(' ');
+    svg+=`<polyline points="${pts}" fill="none" stroke="${s.col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s.data.forEach((v,i)=>svg+=`<circle cx="${xf(i).toFixed(1)}" cy="${yf(v).toFixed(1)}" r="3" fill="${s.col}"/>`);
+  });
+  MONTHS12.forEach((m,i)=>svg+=`<text x="${xf(i).toFixed(1)}" y="${H-1}" text-anchor="middle" font-size="9" fill="#888">${m}</text>`);
+  el.innerHTML=svg;
+}
+</script>
+</body>
+</html>
