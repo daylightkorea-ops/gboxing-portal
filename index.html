@@ -220,7 +220,6 @@ textarea.fi{resize:none;height:60px;}
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="hint-box">
       <div class="hint-title">테스트 계정 (클릭하면 자동 입력)</div>
-      <div class="hint-row" onclick="fill('Gboxinghq','')"><span class="hint-name">본사 (임원)</span><span class="rtag rt-hq">임원</span><span class="hint-id">Gboxinghq</span></div>
       <div class="hint-row" onclick="fill('gboxingjy','1234')"><span class="hint-name">주엽점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingjy / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxinghj','1234')"><span class="hint-name">화정점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinghj / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxingyd','1234')"><span class="hint-name">야당점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingyd / 1234</span></div>
@@ -803,6 +802,11 @@ async function doLogin(){
     showLoading('hv-overview','데이터 불러오는 중...');
     await initHQ();
   } else {
+    // shell 먼저 보여주고 나서 데이터 로드
+    document.getElementById('br-av').textContent=a.av;
+    document.getElementById('br-name').textContent=a.name;
+    document.getElementById('br-top-badge').textContent=a.name;
+    document.getElementById('br-chart-sub').textContent=a.name+' · 2026';
     document.getElementById('page-branch').classList.remove('hidden');
     showLoading('bv-dash','데이터 불러오는 중...');
     await initBranch(a);
@@ -1098,12 +1102,6 @@ function brGo(v){
 }
 
 async function initBranch(a){
-  // 사이드바 기본 설정
-  document.getElementById('br-av').textContent=a.av;
-  document.getElementById('br-name').textContent=a.name;
-  document.getElementById('br-top-badge').textContent=a.name;
-  document.getElementById('br-chart-sub').textContent=a.name+' · 2026';
-
   // Sheets에서 실시간 데이터 fetch
   const [memberData, surveyData] = await Promise.all([
     fetchSheet('회원현황'),
@@ -1130,14 +1128,32 @@ async function initBranch(a){
     }
   }
 
-  // KPI 업데이트
+  // bv-dash를 원래 HTML로 복원 (showLoading이 덮어썼으므로)
   const fp=100-mp;
-  document.getElementById('b-total').textContent=total.toLocaleString()+'명';
-  document.getElementById('b-male').textContent=male.toLocaleString()+'명';
-  document.getElementById('b-female').textContent=female.toLocaleString()+'명';
-  document.getElementById('b-renew').textContent=renew.toLocaleString()+'명';
-  document.getElementById('b-male-pct').textContent='남성 '+mp+'%';
-  document.getElementById('b-female-pct').textContent='여성 '+fp+'%';
+  document.getElementById('bv-dash').innerHTML=`
+    <div class="kg4">
+      <div class="kpi"><div class="kpi-l">총 유효회원</div><div class="kpi-v" id="b-total">${total.toLocaleString()}명</div><div class="kpi-s up">최신 데이터</div></div>
+      <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v" id="b-male">${male.toLocaleString()}명</div><div class="kpi-s nt">${mp}%</div></div>
+      <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v" id="b-female">${female.toLocaleString()}명</div><div class="kpi-s nt">${fp}%</div></div>
+      <div class="kpi"><div class="kpi-l">재등록 회원</div><div class="kpi-v" id="b-renew">${renew.toLocaleString()}명</div><div class="kpi-s up">이번 달</div></div>
+    </div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-hd"><span class="card-t">월별 유효회원 추이</span><span class="card-s" id="br-chart-sub">${a.name} · 2026</span></div>
+        <div class="bar-chart" id="br-bars"></div>
+        <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>재등록</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-t">성별 분포</span></div>
+        <div class="donut-wrap">
+          <canvas id="br-donut" width="88" height="88"></canvas>
+          <div class="donut-leg">
+            <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div><span id="b-male-pct">남성 ${mp}%</span></div>
+            <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div><span id="b-female-pct">여성 ${fp}%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
 
   // 차트
   drawBars5('br-bars', monthly.slice(-5), renews.slice(-5));
