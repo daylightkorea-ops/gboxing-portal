@@ -220,6 +220,7 @@ textarea.fi{resize:none;height:60px;}
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="hint-box">
       <div class="hint-title">테스트 계정 (클릭하면 자동 입력)</div>
+      <div class="hint-row" onclick="fill('Gboxinghq','')"><span class="hint-name">본사 (임원)</span><span class="rtag rt-hq">임원</span><span class="hint-id">Gboxinghq</span></div>
       <div class="hint-row" onclick="fill('gboxingjy','1234')"><span class="hint-name">주엽점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingjy / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxinghj','1234')"><span class="hint-name">화정점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinghj / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxingyd','1234')"><span class="hint-name">야당점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingyd / 1234</span></div>
@@ -653,32 +654,164 @@ const BRANCH_DATA={
 };
 
 const MONTHS12=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const SHEET_ID='1XGjAwuRJj_tvMvBoWSUX3KqN7IWfu5dzEqj92NL6rX0';
+const API_BASE=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=`;
 
-let fuData=[
-  {name:'김재원',days:8,meta:'체력/건강 · 1개월 관심'},
-  {name:'나현우',days:5,meta:'스트레스 해소 · PT 관심'},
-  {name:'한지민',days:2,meta:'다이어트 · 3개월 관심'},
-];
+let currentUser=null;
+let fuData=[];
+let LIVE={hq:null, branches:{}};
 
-let currentUser = null;
+/* ── Sheets fetch ── */
+async function fetchSheet(sheetName){
+  try{
+    const res=await fetch(API_BASE+encodeURIComponent(sheetName));
+    const txt=await res.text();
+    const json=JSON.parse(txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const cols=json.table.cols.map(c=>c.label);
+    const rows=json.table.rows.map(r=>r?r.c.map(c=>c&&c.v!=null?String(c.v).trim():''):[])||[];
+    return {cols, rows};
+  }catch(e){console.error('fetchSheet error:',sheetName,e);return null;}
+}
+
+function rowToObj(cols,row){
+  const obj={};
+  cols.forEach((c,i)=>obj[c]=row[i]||'');
+  return obj;
+}
+
+/* ── 회원현황에서 지점별 최신 데이터 추출 ── */
+function parseMemberData(data){
+  if(!data)return{};
+  const {cols,rows}=data;
+  const result={};
+  const branchMap={'주엽점':'jy','화정점':'hj','야당점':'yd','구래점':'gr'};
+
+  // 월별로 그룹핑
+  const byBranch={jy:[],hj:[],yd:[],gr:[]};
+  rows.forEach(row=>{
+    const obj=rowToObj(cols,row);
+    const bk=branchMap[obj['지점']];
+    if(!bk)return;
+    byBranch[bk].push(obj);
+  });
+
+  Object.entries(byBranch).forEach(([bk,brows])=>{
+    if(!brows.length)return;
+    // 날짜 정렬
+    brows.sort((a,b)=>a['날짜']>b['날짜']?1:-1);
+    const latest=brows[brows.length-1];
+    // 12개월 추이
+    const monthly=brows.slice(-12).map(r=>parseInt(r['총유효'])||0);
+    const renews=brows.slice(-12).map(r=>parseInt(r['총재등록'])||0);
+    const passMonthly=[
+      brows.slice(-12).map(r=>parseInt(r['1개월'])||0),
+      brows.slice(-12).map(r=>parseInt(r['3개월'])||0),
+      brows.slice(-12).map(r=>parseInt(r['6개월'])||0),
+      brows.slice(-12).map(r=>parseInt(r['연회원'])||0),
+    ];
+    const total=parseInt(latest['총유효'])||0;
+    const male=parseInt(latest['유효(남)'])||0;
+    const female=parseInt(latest['유효(여)'])||0;
+    const renew=parseInt(latest['총재등록'])||0;
+    const mp=total>0?Math.round(male/total*100):0;
+    const passLatest=[
+      {n:'1개월권',v:parseInt(latest['1개월'])||0},
+      {n:'2~3개월권',v:parseInt(latest['3개월'])||0},
+      {n:'6개월권 이상',v:parseInt(latest['6개월'])||0},
+      {n:'PT',v:parseInt(latest['PT기타'])||0},
+    ];
+    result[bk]={total,male,female,renew,mp,monthly,renews,passMonthly,pass:passLatest};
+  });
+  return result;
+}
+
+/* ── 신규상담에서 서베이 분포 + 팔로업 추출 ── */
+function parseSurveyData(data, branch){
+  if(!data)return{purpose:[],path:[],followup:[]};
+  const {cols,rows}=data;
+  const purposeCount={};
+  const pathCount={};
+  const followup=[];
+
+  rows.forEach(row=>{
+    const obj=rowToObj(cols,row);
+    if(branch && obj['지점']!==branch)return;
+
+    // 운동목적 집계
+    const p=obj['운동목적']||'';
+    p.split(/[,\/]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
+      purposeCount[s]=(purposeCount[s]||0)+1;
+    });
+
+    // 방문경로 집계
+    const path=obj['방문경로']||'';
+    if(path) pathCount[path]=(pathCount[path]||0)+1;
+
+    // 팔로업
+    const result=obj['전환여부']||'';
+    if(result==='미전환'||result==='팔로업 필요'){
+      const dateStr=obj['상담날짜']||'';
+      const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
+      followup.push({
+        name:obj['이름']||'',
+        days,
+        meta:`${obj['운동목적']||''} · ${obj['전환회원권']||obj['비전환사유']||''}`,
+        staff:obj['담당자']||'',
+        branch:obj['지점']||'',
+        date:dateStr,
+        reason:obj['비전환사유']||'',
+      });
+    }
+  });
+
+  const toArr=(obj)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,v])=>({n,v}));
+  return{purpose:toArr(purposeCount), path:toArr(pathCount), followup};
+}
+
+/* ── 담당자별 전환율 ── */
+function parseStaffData(data, branch){
+  if(!data)return[];
+  const {cols,rows}=data;
+  const staffMap={};
+  rows.forEach(row=>{
+    const obj=rowToObj(cols,row);
+    if(branch && obj['지점']!==branch)return;
+    const s=obj['담당자']||'';
+    if(!s)return;
+    if(!staffMap[s])staffMap[s]={name:s,consult:0,convert:0,renew:0};
+    staffMap[s].consult++;
+    if(obj['전환여부']==='등록 완료') staffMap[s].convert++;
+  });
+  // 재등록 담당자도 집계
+  return Object.values(staffMap).filter(s=>s.consult>0);
+}
 
 function fill(id,pw){document.getElementById('inp-id').value=id;document.getElementById('inp-pw').value=pw;}
 
-function doLogin(){
+async function doLogin(){
   const id=document.getElementById('inp-id').value.trim();
   const pw=document.getElementById('inp-pw').value.trim();
   const a=ACCTS[id];
   if(!a||a.pw!==pw){document.getElementById('lerr').style.display='block';return;}
   document.getElementById('lerr').style.display='none';
-  currentUser = a;
+  currentUser=a;
   document.getElementById('page-login').style.display='none';
+
+  // 로딩 표시
   if(a.role==='hq'){
     document.getElementById('page-hq').classList.remove('hidden');
-    initHQ();
+    showLoading('hv-overview','데이터 불러오는 중...');
+    await initHQ();
   } else {
-    initBranch(a);
     document.getElementById('page-branch').classList.remove('hidden');
+    showLoading('bv-dash','데이터 불러오는 중...');
+    await initBranch(a);
   }
+}
+
+function showLoading(viewId, msg){
+  const el=document.getElementById(viewId);
+  if(el) el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--gray);font-size:13px;">⏳ ${msg}</div>`;
 }
 
 function logout(){
@@ -686,6 +819,8 @@ function logout(){
   document.getElementById('page-login').style.display='flex';
   document.getElementById('inp-id').value='';
   document.getElementById('inp-pw').value='';
+  fuData=[];
+  LIVE={hq:null,branches:{}};
 }
 
 /* ─── HQ ─── */
@@ -702,20 +837,106 @@ function hqGo(v){
   } else {
     document.getElementById('hv-overview').classList.remove('on');
     document.getElementById('hv-branch-detail').classList.add('on');
-    const bd=BRANCH_DATA[v];
-    document.getElementById('hq-title').textContent=bd.name+' 대시보드';
+    const bName={jy:'주엽점',hj:'화정점',yd:'야당점',gr:'구래점'}[v];
+    document.getElementById('hq-title').textContent=bName+' 대시보드';
+    const bd={...BRANCH_DATA[v],...(LIVE.branches[v]||{})};
+    // 서베이 분포 추가
+    if(LIVE.hq){
+      const sv=parseSurveyData(LIVE.hq.survey, bName);
+      bd.purpose=sv.purpose.length?sv.purpose:bd.purpose;
+      bd.path=sv.path.length?sv.path:bd.path;
+      const staff=parseStaffData(LIVE.hq.survey, bName);
+      if(staff.length) bd.staff=staff;
+    }
     renderBranchDetail(bd);
   }
 }
 
-function initHQ(){
-  drawDonut('hq-donut',[58,42],['#378ADD','#E87DBB']);
+async function initHQ(){
+  // 병렬로 시트 fetch
+  const [memberData, surveyData] = await Promise.all([
+    fetchSheet('회원현황'),
+    fetchSheet('신규상담'),
+  ]);
+  LIVE.hq={member:memberData, survey:surveyData};
+
+  const liveMembers=parseMemberData(memberData);
+  // BRANCH_DATA에 실제 데이터 병합
+  Object.entries(liveMembers).forEach(([bk,bd])=>{
+    LIVE.branches[bk]=bd;
+    Object.assign(BRANCH_DATA[bk],bd);
+  });
+
+  // 전체 KPI
+  const allBranches=Object.values(BRANCH_DATA);
+  const totalMembers=allBranches.reduce((s,b)=>s+(b.total||0),0);
+  const totalMale=allBranches.reduce((s,b)=>s+(b.male||0),0);
+  const totalFemale=allBranches.reduce((s,b)=>s+(b.female||0),0);
+  const totalRenew=allBranches.reduce((s,b)=>s+(b.renew||0),0);
+
+  // KPI 업데이트
+  const kpis=document.querySelectorAll('#hv-overview .kpi-v');
+  if(kpis[0]) kpis[0].textContent=totalMembers.toLocaleString()+'명';
+  if(kpis[1]) kpis[1].textContent=totalMale.toLocaleString()+'명';
+  if(kpis[2]) kpis[2].textContent=totalFemale.toLocaleString()+'명';
+  if(kpis[3]) kpis[3].textContent=totalRenew.toLocaleString()+'명';
+
+  // 지점별 바 차트 업데이트
+  updateHQMemberBars();
+  drawDonut('hq-donut',[Math.round(totalMale/totalMembers*100),Math.round(totalFemale/totalMembers*100)],['#378ADD','#E87DBB']);
   drawLine12('svg-total',[
     {col:'#378ADD',data:BRANCH_DATA.jy.monthly},
     {col:'#1D9E75',data:BRANCH_DATA.hj.monthly},
     {col:'#D85A30',data:BRANCH_DATA.yd.monthly},
     {col:'#7F77DD',data:BRANCH_DATA.gr.monthly},
   ]);
+  updateHQPassBars();
+}
+
+function updateHQMemberBars(){
+  const branches=[
+    {l:'주엽점',bk:'jy'},{l:'화정점',bk:'hj'},{l:'야당점',bk:'yd'},{l:'구래점',bk:'gr'}
+  ];
+  const wrap=document.querySelector('#hv-overview .card:nth-of-type(1) > div');
+  if(!wrap)return;
+  wrap.innerHTML=branches.map(({l,bk})=>{
+    const bd=BRANCH_DATA[bk];
+    const t=bd.total||0; const r=bd.renew||0;
+    const pct=Math.round(t/(Math.max(...branches.map(b=>BRANCH_DATA[b.bk].total||0)))*100);
+    const rpct=Math.round(r/(Math.max(...branches.map(b=>BRANCH_DATA[b.bk].renew||0)))*100);
+    return `<div class="mbr-row">
+      <span class="mbr-label">${l}</span>
+      <div class="mbr-bar-bg"><div class="mbr-bar-fill" style="width:${pct}%;background:var(--blue-m);">유효 ${t}명</div></div>
+      <div class="mbr-bar-bg" style="max-width:140px;"><div class="mbr-bar-fill" style="width:${rpct}%;background:var(--green-m);">재등록 ${r}명</div></div>
+    </div>`;
+  }).join('');
+}
+
+function updateHQPassBars(){
+  const allPass={1:0,3:0,6:0,y:0,pt:0};
+  ['jy','hj','yd','gr'].forEach(bk=>{
+    const p=BRANCH_DATA[bk].pass||[];
+    p.forEach(({n,v})=>{
+      if(n.includes('1개월'))allPass[1]+=v;
+      else if(n.includes('2~3')||n.includes('3개월'))allPass[3]+=v;
+      else if(n.includes('6개월'))allPass[6]+=v;
+      else if(n.includes('연회원'))allPass.y+=v;
+      else allPass.pt+=v;
+    });
+  });
+  const total=Object.values(allPass).reduce((a,b)=>a+b,0)||1;
+  const el=document.getElementById('hq-pass-bars');
+  if(!el)return;
+  const items=[
+    {n:'1개월권',v:allPass[1]},{n:'2~3개월권',v:allPass[3]},
+    {n:'6개월권 이상',v:allPass[6]},{n:'연회원',v:allPass.y},{n:'PT/기타',v:allPass.pt}
+  ].filter(x=>x.v>0);
+  const cols=['#378ADD','#378ADD','#1D9E75','#1D9E75','#D85A30'];
+  el.innerHTML=items.map(({n,v},i)=>`
+    <div class="pass-row">
+      <div class="pass-meta"><span>${n}</span><span style="font-weight:600;">${v}명 (${Math.round(v/total*100)}%)</span></div>
+      <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(v/total*100)}%;background:${cols[i]||'#888'};"></div></div>
+    </div>`).join('');
 }
 
 function renderBranchDetail(bd){
@@ -876,22 +1097,57 @@ function brGo(v){
   document.getElementById('br-page-title').textContent={dash:'지점 현황',input:'상담 입력',fu:'팔로업 목록'}[v];
 }
 
-function initBranch(a){
+async function initBranch(a){
+  // 사이드바 기본 설정
   document.getElementById('br-av').textContent=a.av;
   document.getElementById('br-name').textContent=a.name;
   document.getElementById('br-top-badge').textContent=a.name;
-  document.getElementById('b-total').textContent=a.total+'명';
-  document.getElementById('b-male').textContent=a.male+'명';
-  document.getElementById('b-female').textContent=a.female+'명';
-  document.getElementById('b-renew').textContent=a.renew+'명';
-  document.getElementById('br-chart-sub').textContent=a.name+' · 2025';
-  // 담당자는 직접 이름 입력
-  const fp=100-a.mp;
-  document.getElementById('b-male-pct').textContent='남성 '+a.mp+'%';
+  document.getElementById('br-chart-sub').textContent=a.name+' · 2026';
+
+  // Sheets에서 실시간 데이터 fetch
+  const [memberData, surveyData] = await Promise.all([
+    fetchSheet('회원현황'),
+    fetchSheet('신규상담'),
+  ]);
+
+  // 회원현황에서 해당 지점 최신 데이터
+  let total=a.total, male=a.male, female=a.female, renew=a.renew, mp=a.mp;
+  let monthly=BRANCH_DATA[a.key].monthly;
+  let renews=BRANCH_DATA[a.key].renews;
+
+  if(memberData){
+    const liveMembers=parseMemberData(memberData);
+    const bk=a.key;
+    if(liveMembers[bk]){
+      const ld=liveMembers[bk];
+      total=ld.total||total;
+      male=ld.male||male;
+      female=ld.female||female;
+      renew=ld.renew||renew;
+      mp=ld.mp||mp;
+      if(ld.monthly&&ld.monthly.length) monthly=ld.monthly;
+      if(ld.renews&&ld.renews.length) renews=ld.renews;
+    }
+  }
+
+  // KPI 업데이트
+  const fp=100-mp;
+  document.getElementById('b-total').textContent=total.toLocaleString()+'명';
+  document.getElementById('b-male').textContent=male.toLocaleString()+'명';
+  document.getElementById('b-female').textContent=female.toLocaleString()+'명';
+  document.getElementById('b-renew').textContent=renew.toLocaleString()+'명';
+  document.getElementById('b-male-pct').textContent='남성 '+mp+'%';
   document.getElementById('b-female-pct').textContent='여성 '+fp+'%';
-  const bd=BRANCH_DATA[a.key];
-  drawBars5('br-bars',bd.monthly.slice(0,5),bd.renews.slice(0,5));
-  drawDonut('br-donut',[a.mp,fp],['#378ADD','#E87DBB']);
+
+  // 차트
+  drawBars5('br-bars', monthly.slice(-5), renews.slice(-5));
+  drawDonut('br-donut',[mp,fp],['#378ADD','#E87DBB']);
+
+  // 팔로업 — 신규상담 시트에서 해당 지점 미전환/팔로업 필요 행 추출
+  if(surveyData){
+    const sv=parseSurveyData(surveyData, a.name);
+    fuData=sv.followup.sort((x,y)=>y.days-x.days);
+  }
   renderBranchFU();
 }
 
