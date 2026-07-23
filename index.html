@@ -220,6 +220,7 @@ textarea.fi{resize:none;height:60px;}
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="hint-box">
       <div class="hint-title">테스트 계정 (클릭하면 자동 입력)</div>
+      <div class="hint-row" onclick="fill('Gboxinghq','')"><span class="hint-name">본사 (임원)</span><span class="rtag rt-hq">임원</span><span class="hint-id">Gboxinghq</span></div>
       <div class="hint-row" onclick="fill('gboxingjy','1234')"><span class="hint-name">주엽점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingjy / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxinghj','1234')"><span class="hint-name">화정점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinghj / 1234</span></div>
       <div class="hint-row" onclick="fill('gboxingyd','1234')"><span class="hint-name">야당점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingyd / 1234</span></div>
@@ -848,13 +849,17 @@ function hqGo(v){
     const bName={jy:'주엽점',hj:'화정점',yd:'야당점',gr:'구래점'}[v];
     document.getElementById('hq-title').textContent=bName+' 대시보드';
     const bd={...BRANCH_DATA[v],...(LIVE.branches[v]||{})};
-    // 서베이 분포 추가
-    if(LIVE.hq){
+    console.log('hqGo:',bName,'LIVE.hq:',!!LIVE.hq,'survey rows:',LIVE.hq?.survey?.rows?.length);
+    // 서베이 분포 + 담당자 데이터
+    if(LIVE.hq && LIVE.hq.survey){
       const sv=parseSurveyData(LIVE.hq.survey, bName);
-      bd.purpose=sv.purpose.length?sv.purpose:bd.purpose;
-      bd.path=sv.path.length?sv.path:bd.path;
+      if(sv.purpose.length) bd.purpose=sv.purpose;
+      if(sv.path.length) bd.path=sv.path;
       const staff=parseStaffData(LIVE.hq.survey, bName);
+      console.log('staff result for',bName,':',staff);
       if(staff.length) bd.staff=staff;
+    } else {
+      console.warn('LIVE.hq.survey 없음 — 샘플 데이터 사용');
     }
     renderBranchDetail(bd);
   }
