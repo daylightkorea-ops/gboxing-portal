@@ -358,9 +358,8 @@ textarea.fi{resize:none;height:60px;}
       </div>
     </div>
     <div class="nav-grp">메뉴</div>
-    <div class="ni act" onclick="brGo('dash')" id="bn-dash"><span class="ni-ic">📊</span>지점 현황</div>
-    <div class="ni" onclick="brGo('input')" id="bn-input"><span class="ni-ic">✏️</span>상담 입력</div>
-    <div class="ni" onclick="brGo('fu')" id="bn-fu"><span class="ni-ic">🔔</span>팔로업 목록<span class="ni-badge" id="br-fu-badge">3</span></div>
+    <div class="ni act" onclick="brGo('input')" id="bn-input"><span class="ni-ic">✏️</span>상담 입력</div>
+    <div class="ni" onclick="brGo('fu')" id="bn-fu"><span class="ni-ic">🔔</span>팔로업 목록<span class="ni-badge" id="br-fu-badge">0</span></div>
     <div class="sb-foot"><button class="logout-btn" onclick="logout()">← 로그아웃</button></div>
   </div>
   <div class="main">
@@ -728,27 +727,76 @@ function parseMemberData(data){
   return result;
 }
 
+/* ── 키워드 그룹핑 ── */
+function normalizePurpose(s){
+  const t=s.toLowerCase().replace(/\s/g,'');
+  if(/다이어트|체중감량|감량|살/.test(t)) return '다이어트/체중감량';
+  if(/체력향상|체력증진|체력/.test(t)) return '체력 증진';
+  if(/스트레스|스트레/.test(t)) return '스트레스 해소';
+  if(/취미|새로운도전|새도전|즐거움|재미/.test(t)) return '취미/새로운 도전';
+  if(/건강|건강관리/.test(t)) return '건강 관리';
+  if(/선수|대회|격투|호신/.test(t)) return '선수/대회 준비';
+  if(/근육|증량|벌크/.test(t)) return '근육 증가';
+  return s.trim();
+}
+
+function normalizePath(s){
+  const t=s.toLowerCase().replace(/\s/g,'');
+  if(/네이버|검색|naver/.test(t)) return '네이버/검색';
+  if(/인스타|instagram|sns/.test(t)) return '인스타그램';
+  if(/유튜브|youtube/.test(t)) return '유튜브';
+  if(/지인|추천|소개|친구|가족/.test(t)) return '지인 추천';
+  if(/간판|현수막|전단/.test(t)) return '간판/오프라인';
+  if(/당근|블로그|카카오/.test(t)) return '기타 온라인';
+  if(/재등록|기존/.test(t)) return '기존 회원';
+  return s.trim();
+}
+
+function getBirthDecade(birth){
+  if(!birth) return null;
+  // 생년월일에서 연도 추출
+  const m = String(birth).match(/(\d{4})/);
+  if(!m) return null;
+  const yr = parseInt(m[1]);
+  if(yr < 1900 || yr > 2020) return null;
+  const age = new Date().getFullYear() - yr;
+  if(age < 20) return '10대';
+  if(age < 30) return '20대';
+  if(age < 40) return '30대';
+  if(age < 50) return '40대';
+  return '50대+';
+}
+
 /* ── 신규상담에서 서베이 분포 + 팔로업 추출 ── */
 function parseSurveyData(data, branch){
-  if(!data)return{purpose:[],path:[],followup:[]};
+  if(!data)return{purpose:[],path:[],age:[],followup:[]};
   const {cols,rows}=data;
   const purposeCount={};
   const pathCount={};
+  const ageCount={};
   const followup=[];
 
   rows.forEach(row=>{
     const obj=rowToObj(cols,row);
     if(branch && obj['지점']!==branch)return;
 
-    // 운동목적 집계
+    // 운동목적 — 그룹핑
     const p=obj['운동목적']||'';
-    p.split(/[,\/]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
-      purposeCount[s]=(purposeCount[s]||0)+1;
+    p.split(/[,\/、]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
+      const g=normalizePurpose(s);
+      purposeCount[g]=(purposeCount[g]||0)+1;
     });
 
-    // 방문경로 집계
+    // 방문경로 — 그룹핑
     const path=obj['방문경로']||'';
-    if(path) pathCount[path]=(pathCount[path]||0)+1;
+    if(path){
+      const g=normalizePath(path);
+      pathCount[g]=(pathCount[g]||0)+1;
+    }
+
+    // 나이대 — 생년월일에서 추출
+    const decade=getBirthDecade(obj['생년월일']);
+    if(decade) ageCount[decade]=(ageCount[decade]||0)+1;
 
     // 팔로업
     const result=obj['전환여부']||'';
@@ -767,8 +815,14 @@ function parseSurveyData(data, branch){
     }
   });
 
-  const toArr=(obj)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,v])=>({n,v}));
-  return{purpose:toArr(purposeCount), path:toArr(pathCount), followup};
+  const toArr=(obj,order)=>{
+    if(order){
+      return order.map(n=>({n,v:obj[n]||0})).filter(x=>x.v>0);
+    }
+    return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([n,v])=>({n,v}));
+  };
+  const ageOrder=['10대','20대','30대','40대','50대+'];
+  return{purpose:toArr(purposeCount), path:toArr(pathCount), age:toArr(ageCount,ageOrder), followup};
 }
 
 /* ── 담당자별 전환율 ── */
@@ -812,7 +866,8 @@ async function doLogin(){
     document.getElementById('br-top-badge').textContent=a.name;
     document.getElementById('br-chart-sub').textContent=a.name+' · 2026';
     document.getElementById('page-branch').classList.remove('hidden');
-    showLoading('bv-dash','데이터 불러오는 중...');
+    // 지점 현황 숨기고 상담 입력으로 바로 이동
+    brGo('input');
     await initBranch(a);
   }
 }
@@ -1152,13 +1207,13 @@ function renderBranchDetail(bd){
 
 /* ─── BRANCH ─── */
 function brGo(v){
-  ['dash','input','fu'].forEach(id=>{
+  ['input','fu'].forEach(id=>{
     const el=document.getElementById('bv-'+id);
     if(el)el.className='view'+(id===v?' on':'');
     const n=document.getElementById('bn-'+id);
     if(n)n.classList.toggle('act',id===v);
   });
-  document.getElementById('br-page-title').textContent={dash:'지점 현황',input:'상담 입력',fu:'팔로업 목록'}[v];
+  document.getElementById('br-page-title').textContent={input:'상담 입력',fu:'팔로업 목록'}[v]||'';
 }
 
 async function initBranch(a){
