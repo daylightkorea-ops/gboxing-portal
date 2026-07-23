@@ -775,6 +775,7 @@ function parseSurveyData(data, branch){
 function parseStaffData(data, branch){
   if(!data)return[];
   const {cols,rows}=data;
+  console.log('parseStaffData branch:',branch,'cols:',cols,'rows:',rows.length);
   const staffMap={};
   rows.forEach(row=>{
     const obj=rowToObj(cols,row);
@@ -785,7 +786,7 @@ function parseStaffData(data, branch){
     staffMap[s].consult++;
     if(obj['전환여부']==='등록 완료') staffMap[s].convert++;
   });
-  // 재등록 담당자도 집계
+  console.log('parseStaffData result:',staffMap);
   return Object.values(staffMap).filter(s=>s.consult>0);
 }
 
