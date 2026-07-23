@@ -849,13 +849,10 @@ async function doLogin(){
     document.getElementById('page-hq').classList.remove('hidden');
     await initHQ();
   } else {
-    // shell 먼저 보여주고 나서 데이터 로드
     document.getElementById('br-av').textContent=a.av;
     document.getElementById('br-name').textContent=a.name;
     document.getElementById('br-top-badge').textContent=a.name;
-    document.getElementById('br-chart-sub').textContent=a.name+' · 2026';
     document.getElementById('page-branch').classList.remove('hidden');
-    // 지점 현황 숨기고 상담 입력으로 바로 이동
     brGo('input');
     await initBranch(a);
   }
@@ -1049,25 +1046,23 @@ function updateHQPassBars(){
 
 function renderBranchDetail(bd){
   const fp=100-bd.mp;
-  const passMax=Math.max(...bd.pass.map(p=>p.v));
-  const allSeries=[
-    {col:bd.col,data:bd.monthly},
-    {col:bd.col+'88',data:bd.renews},
-  ];
-  const purposeMax=Math.max(...bd.purpose.map(d=>d.v));
-  const pathMax=Math.max(...bd.path.map(d=>d.v));
-  const ageMax=Math.max(...bd.age.map(d=>d.v));
+  const passMax=Math.max(...(bd.pass||[]).map(p=>p.v),1);
+  const purposeMax=Math.max(...(bd.purpose||[]).map(d=>d.v),1);
+  const pathMax=Math.max(...(bd.path||[]).map(d=>d.v),1);
+  const ageMax=Math.max(...(bd.age||[]).map(d=>d.v),1);
+  const yr=new Date().getFullYear();
+  const labels=bd.monthLabels||MONTHS12.slice(0,bd.monthly?.length||12);
 
   document.getElementById('branch-detail-content').innerHTML=`
   <div style="display:flex;flex-direction:column;gap:13px;">
     <div class="kg4">
-      <div class="kpi"><div class="kpi-l">유효회원</div><div class="kpi-v">${bd.total}명</div><div class="kpi-s up">↑ 최근 1개월</div></div>
+      <div class="kpi"><div class="kpi-l">유효회원</div><div class="kpi-v">${bd.total}명</div><div class="kpi-s up">최신 기준</div></div>
       <div class="kpi"><div class="kpi-l">남성</div><div class="kpi-v">${bd.male}명</div><div class="kpi-s nt">${bd.mp}%</div></div>
       <div class="kpi"><div class="kpi-l">여성</div><div class="kpi-v">${bd.female}명</div><div class="kpi-s nt">${fp}%</div></div>
       <div class="kpi"><div class="kpi-l">재등록</div><div class="kpi-v">${bd.renew}명</div><div class="kpi-s up">재등록률 ${Math.round(bd.renew/bd.total*100)}%</div></div>
     </div>
     <div class="card">
-      <div class="card-hd"><span class="card-t">유효회원 & 재등록 12개월 추이</span><span class="card-s">${bd.name} · 2025년</span></div>
+      <div class="card-hd"><span class="card-t">유효회원 & 재등록 추이</span><span class="card-s">${bd.name} · 최근 12개월</span></div>
       <svg class="svg-line" id="det-line" viewBox="0 0 600 95" style="height:95px;"></svg>
       <div class="leg" style="margin-top:4px;">
         <div class="leg-i"><div class="leg-dot" style="background:${bd.col};"></div>유효회원</div>
@@ -1075,19 +1070,19 @@ function renderBranchDetail(bd){
       </div>
     </div>
     <div class="card">
-      <div class="card-hd"><span class="card-t">회원권별 12개월 추이</span><span class="card-s">${bd.name} · 2025년</span></div>
+      <div class="card-hd"><span class="card-t">회원권별 추이</span><span class="card-s">${bd.name} · 최근 12개월</span></div>
       <svg class="svg-line" id="det-pass-line" viewBox="0 0 600 95" style="height:95px;"></svg>
       <div class="leg" style="margin-top:4px;">
-        ${bd.pass.map((p,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${PASS_COLS[i]};"></div>${p.n}</div>`).join('')}
+        ${(bd.pass||[]).map((p,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${PASS_COLS[i]||'#888'};"></div>${p.n}</div>`).join('')}
       </div>
     </div>
     <div class="row2">
       <div class="card">
-        <div class="card-hd"><span class="card-t">회원권 분포 (이번 달)</span></div>
-        ${bd.pass.map((p,i)=>`
+        <div class="card-hd"><span class="card-t">회원권 분포 (최신)</span></div>
+        ${(bd.pass||[]).map((p,i)=>`
         <div class="pass-row">
-          <div class="pass-meta"><span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PASS_COLS[i]};flex-shrink:0;"></span>${p.n}</span><span style="font-weight:600;">${p.v}명 (${Math.round(p.v/bd.total*100)}%)</span></div>
-          <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(p.v/passMax*100)}%;background:${PASS_COLS[i]};"></div></div>
+          <div class="pass-meta"><span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PASS_COLS[i]||'#888'};flex-shrink:0;"></span>${p.n}</span><span style="font-weight:600;">${p.v}명 (${Math.round(p.v/bd.total*100)}%)</span></div>
+          <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(p.v/passMax*100)}%;background:${PASS_COLS[i]||'#888'};"></div></div>
         </div>`).join('')}
       </div>
       <div class="card">
@@ -1104,26 +1099,26 @@ function renderBranchDetail(bd){
     <div class="row3">
       <div class="card">
         <div class="card-hd"><span class="card-t">운동 목적 분포</span></div>
-        ${bd.purpose.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+        ${(bd.purpose||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
           <span class="dist-name">${d.n}</span>
           <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/purposeMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}%</span>
+          <span class="dist-num">${d.v}</span>
         </div>`).join('')}
       </div>
       <div class="card">
         <div class="card-hd"><span class="card-t">방문 경로 분포</span></div>
-        ${bd.path.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+        ${(bd.path||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
           <span class="dist-name">${d.n}</span>
           <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/pathMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}%</span>
+          <span class="dist-num">${d.v}</span>
         </div>`).join('')}
       </div>
       <div class="card">
         <div class="card-hd"><span class="card-t">나이대 분포</span></div>
-        ${bd.age.map(d=>`<div class="dist-row" style="margin-bottom:5px;">
+        ${(bd.age||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
           <span class="dist-name">${d.n}</span>
           <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/ageMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}%</span>
+          <span class="dist-num">${d.v}</span>
         </div>`).join('')}
       </div>
     </div>
@@ -1187,10 +1182,10 @@ function renderBranchDetail(bd){
   drawLine12('det-line',[
     {col:bd.col,data:bd.monthly},
     {col:bd.col+'88',data:bd.renews},
-  ], bd.monthLabels);
+  ], labels);
   drawLine12('det-pass-line',
-    bd.passMonthly.map((data,i)=>({col:PASS_COLS[i],data})),
-    bd.monthLabels
+    (bd.passMonthly||[]).map((data,i)=>({col:PASS_COLS[i],data})),
+    labels
   );
   drawDonut('det-donut',[bd.mp,fp],['#378ADD','#E87DBB']);
 }
