@@ -653,22 +653,26 @@ const BRANCH_DATA={
 };
 
 const MONTHS12=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const SHEET_ID='1XGjAwuRJj_tvMvBoWSUX3KqN7IWfu5dzEqj92NL6rX0';
-const API_BASE=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=`;
+const PROXY_URL='https://script.google.com/macros/s/AKfycbzjIs3BixjFFRFDWIUJNtkD3wM2zQiTgRwnBt3dmTSdRVtRPFqQv2A5zvqFR9h1doL40g/exec';
 
 let currentUser=null;
 let fuData=[];
 let LIVE={hq:null, branches:{}};
 
-/* ── Sheets fetch ── */
+/* ── Sheets fetch (Apps Script 프록시) ── */
 async function fetchSheet(sheetName){
   try{
-    const res=await fetch(API_BASE+encodeURIComponent(sheetName));
-    const txt=await res.text();
-    const json=JSON.parse(txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-    const cols=json.table.cols.map(c=>c.label);
-    const rows=json.table.rows.map(r=>r?r.c.map(c=>c&&c.v!=null?String(c.v).trim():''):[])||[];
-    return {cols, rows};
+    const url=PROXY_URL+'?sheet='+encodeURIComponent(sheetName);
+    console.log('fetchSheet:',sheetName);
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.status!=='ok'||!json.data){console.error('fetchSheet failed:',sheetName,json);return null;}
+    const rows=json.data;
+    if(!rows.length)return{cols:[],rows:[]};
+    const cols=Object.keys(rows[0]);
+    const rowArr=rows.map(r=>cols.map(c=>r[c]!=null?String(r[c]).trim():''));
+    console.log(`[${sheetName}] cols:`,cols,'rows:',rowArr.length);
+    return{cols,rows:rowArr};
   }catch(e){console.error('fetchSheet error:',sheetName,e);return null;}
 }
 
@@ -799,7 +803,6 @@ async function doLogin(){
   // 로딩 표시
   if(a.role==='hq'){
     document.getElementById('page-hq').classList.remove('hidden');
-    showLoading('hv-overview','데이터 불러오는 중...');
     await initHQ();
   } else {
     // shell 먼저 보여주고 나서 데이터 로드
@@ -857,7 +860,11 @@ function hqGo(v){
 }
 
 async function initHQ(){
-  // 병렬로 시트 fetch
+  // 로딩 표시 (hv-overview 내용 보존하면서)
+  const overviewEl=document.getElementById('hv-overview');
+  overviewEl.style.opacity='0.4';
+  overviewEl.style.pointerEvents='none';
+
   const [memberData, surveyData] = await Promise.all([
     fetchSheet('회원현황'),
     fetchSheet('신규상담'),
@@ -865,29 +872,77 @@ async function initHQ(){
   LIVE.hq={member:memberData, survey:surveyData};
 
   const liveMembers=parseMemberData(memberData);
-  // BRANCH_DATA에 실제 데이터 병합
   Object.entries(liveMembers).forEach(([bk,bd])=>{
     LIVE.branches[bk]=bd;
     Object.assign(BRANCH_DATA[bk],bd);
   });
 
-  // 전체 KPI
+  // 전체 KPI 계산
   const allBranches=Object.values(BRANCH_DATA);
   const totalMembers=allBranches.reduce((s,b)=>s+(b.total||0),0);
   const totalMale=allBranches.reduce((s,b)=>s+(b.male||0),0);
   const totalFemale=allBranches.reduce((s,b)=>s+(b.female||0),0);
   const totalRenew=allBranches.reduce((s,b)=>s+(b.renew||0),0);
+  const mp=totalMembers>0?Math.round(totalMale/totalMembers*100):58;
+  const fp=100-mp;
 
-  // KPI 업데이트
-  const kpis=document.querySelectorAll('#hv-overview .kpi-v');
-  if(kpis[0]) kpis[0].textContent=totalMembers.toLocaleString()+'명';
-  if(kpis[1]) kpis[1].textContent=totalMale.toLocaleString()+'명';
-  if(kpis[2]) kpis[2].textContent=totalFemale.toLocaleString()+'명';
-  if(kpis[3]) kpis[3].textContent=totalRenew.toLocaleString()+'명';
+  // hv-overview 전체 재렌더링
+  overviewEl.innerHTML=`
+    <div class="kg4">
+      <div class="kpi"><div class="kpi-l">전체 유효회원</div><div class="kpi-v">${totalMembers.toLocaleString()}명</div><div class="kpi-s up">전지점 합산</div></div>
+      <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v">${totalMale.toLocaleString()}명</div><div class="kpi-s nt">${mp}%</div></div>
+      <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v">${totalFemale.toLocaleString()}명</div><div class="kpi-s nt">${fp}%</div></div>
+      <div class="kpi"><div class="kpi-l">이번 달 재등록</div><div class="kpi-v">${totalRenew.toLocaleString()}명</div><div class="kpi-s up">전지점 합산</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-t">지점별 유효회원 & 재등록</span><span class="card-s">최신 기준</span></div>
+      <div id="hq-member-bar-wrap">
+        ${['jy','hj','yd','gr'].map(bk=>{
+          const bd=BRANCH_DATA[bk];
+          const t=bd.total||0; const r=bd.renew||0;
+          const maxT=Math.max(...['jy','hj','yd','gr'].map(k=>BRANCH_DATA[k].total||1));
+          const maxR=Math.max(...['jy','hj','yd','gr'].map(k=>BRANCH_DATA[k].renew||1));
+          return `<div class="mbr-row">
+            <span class="mbr-label">${bd.name}</span>
+            <div class="mbr-bar-bg"><div class="mbr-bar-fill" style="width:${Math.round(t/maxT*100)}%;background:var(--blue-m);">유효 ${t}명</div></div>
+            <div class="mbr-bar-bg" style="max-width:140px;"><div class="mbr-bar-fill" style="width:${Math.round(r/maxR*100)}%;background:var(--green-m);">재등록 ${r}명</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="leg" style="margin-top:8px;"><div class="leg-i"><div class="leg-dot" style="background:var(--blue-m);"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:var(--green-m);"></div>재등록</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-t">전지점 유효회원 월별 변화</span><span class="card-s">2025~2026년</span></div>
+      <svg class="svg-line" id="svg-total" viewBox="0 0 600 95" style="height:95px;"></svg>
+      <div class="leg" style="margin-top:4px;">
+        <div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>주엽</div>
+        <div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>화정</div>
+        <div class="leg-i"><div class="leg-dot" style="background:#D85A30;"></div>야당</div>
+        <div class="leg-i"><div class="leg-dot" style="background:#7F77DD;"></div>구래</div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-hd"><span class="card-t">전체 성별 분포</span></div>
+        <div class="donut-wrap">
+          <canvas id="hq-donut" width="88" height="88"></canvas>
+          <div class="donut-leg">
+            <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 ${totalMale.toLocaleString()}명 (${mp}%)</div>
+            <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 ${totalFemale.toLocaleString()}명 (${fp}%)</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-t">전체 회원권 분포</span></div>
+        <div id="hq-pass-bars"></div>
+      </div>
+    </div>`;
 
-  // 지점별 바 차트 업데이트
-  updateHQMemberBars();
-  drawDonut('hq-donut',[Math.round(totalMale/totalMembers*100),Math.round(totalFemale/totalMembers*100)],['#378ADD','#E87DBB']);
+  overviewEl.style.opacity='1';
+  overviewEl.style.pointerEvents='';
+
+  // 차트 그리기
+  drawDonut('hq-donut',[mp,fp],['#378ADD','#E87DBB']);
   drawLine12('svg-total',[
     {col:'#378ADD',data:BRANCH_DATA.jy.monthly},
     {col:'#1D9E75',data:BRANCH_DATA.hj.monthly},
