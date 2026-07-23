@@ -741,13 +741,25 @@ function normalizePath(s){
 }
 
 function getBirthDecade(birth){
-  if(!birth) return null;
-  // 생년월일에서 연도 추출
-  const m = String(birth).match(/(\d{4})/);
-  if(!m) return null;
-  const yr = parseInt(m[1]);
-  if(yr < 1900 || yr > 2020) return null;
-  const age = new Date().getFullYear() - yr;
+  if(!birth||birth===''||birth==='null') return null;
+  const s = String(birth).trim();
+  if(!s) return null;
+
+  // 다양한 형식 처리: 2000-05-15, 2000/05/15, 20000515, 2000.05.15
+  let yr = null;
+  const m1 = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  if(m1) yr = parseInt(m1[1]);
+  else {
+    const m2 = s.match(/^(\d{4})/);
+    if(m2) yr = parseInt(m2[1]);
+  }
+
+  if(!yr) return null;
+  const thisYear = new Date().getFullYear();
+  // 유효 연도: 1950 ~ 올해-5
+  if(yr < 1950 || yr > thisYear - 5) return null;
+
+  const age = thisYear - yr;
   if(age < 20) return '10대';
   if(age < 30) return '20대';
   if(age < 40) return '30대';
