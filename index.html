@@ -463,7 +463,7 @@ textarea.fi{resize:none;height:60px;}
 
             <div class="sec-lbl" style="margin-top:20px;">⑧ 상담 결과</div>
             <div class="fg2" style="margin-bottom:10px;">
-              <div class="fg"><label>전환 여부</label><select class="fi" id="result-sel" onchange="toggleConvert(this.value)"><option value="">선택</option><option value="yes">✅ 전환 (등록)</option><option value="fu">🔔 팔로업 필요</option><option value="no">미전환</option></select></div>
+              <div class="fg"><label>전환 여부</label><select class="fi" id="result-sel" onchange="toggleConvert(this.value)"><option value="">선택</option><option value="등록 완료">등록 완료</option><option value="팔로업 필요">팔로업 필요</option><option value="미전환">미전환</option></select></div>
               <div class="fg" id="convert-pass-wrap" style="display:none;"><label>전환 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
             </div>
             <div class="fg" id="no-convert-wrap" style="display:none;margin-bottom:10px;"><label>비전환 / 팔로업 사유</label><input type="text" class="fi" placeholder="사유 입력 (예: 가격 고민 중, 일정 조율 필요 등)"></div>
@@ -1250,8 +1250,8 @@ function toggleOther(cb,targetId){
 }
 
 function toggleConvert(val){
-  document.getElementById('convert-pass-wrap').style.display=val==='yes'?'':'none';
-  document.getElementById('no-convert-wrap').style.display=(val==='no'||val==='fu')?'':'none';
+  document.getElementById('convert-pass-wrap').style.display=val==='등록 완료'?'':'none';
+  document.getElementById('no-convert-wrap').style.display=(val==='미전환'||val==='팔로업 필요')?'':'none';
 }
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbxZYSiK3rL7GU_IvGgCkORjStPQlfg4HqaMHGA5Bjv7TEfAr75LotUwCm3ElnuceMwi1w/exec';
@@ -1305,8 +1305,9 @@ async function saveConsult(){
     // 일정
     payload.freq = getRadio('freq');
     payload.time = getRadio('time');
-    // 결과
-    payload.result    = document.getElementById('result-sel')?.value || '';
+    // 결과 — select value 직접 읽기 (value가 이미 한글)
+    const resultSel = document.getElementById('result-sel');
+    payload.result    = resultSel ? resultSel.value : '';
     payload.pass      = document.querySelector('#convert-pass-wrap select')?.value || '';
     payload.no_reason = document.querySelector('#no-convert-wrap input')?.value.trim() || '';
     // 메모
@@ -1337,8 +1338,7 @@ async function saveConsult(){
   btn.textContent = '저장 중...';
   btn.disabled = true;
 
-  // Google Apps Script는 no-cors + POST로 전송
-  // 응답 확인 없이 전송 후 성공 처리 (no-cors 한계)
+  // Google Apps Script POST 전송
   try {
     fetch(API_URL, {
       method: 'POST',
@@ -1347,9 +1347,10 @@ async function saveConsult(){
       body: JSON.stringify(payload),
     });
 
-    // no-cors라 응답 못 받지만 1.5초 후 성공 처리
+    const isFU = payload.result === '팔로업 필요' || payload.result === '미전환';
+
     setTimeout(() => {
-      if(payload.result === '팔로업 필요' || payload.result === '미전환'){
+      if(isFU){
         fuData.unshift({
           name: payload.name || '신규 상담자',
           days: 0,
@@ -1360,9 +1361,7 @@ async function saveConsult(){
       btn.textContent = '✅ 저장 완료!';
       btn.disabled = false;
       setTimeout(()=>{ btn.textContent = original; }, 2000);
-      if(payload.result === '팔로업 필요' || payload.result === '미전환'){
-        setTimeout(()=>brGo('fu'), 1800);
-      }
+      if(isFU) setTimeout(()=>brGo('fu'), 1800);
     }, 1500);
 
   } catch(err) {
@@ -1378,17 +1377,20 @@ function renderBranchFU(){
   if(!el)return;
   const cnt=fuData.length;
   const urg=fuData.filter(d=>d.days>=7).length;
-  document.getElementById('fu-cnt').textContent=cnt+'건';
-  document.getElementById('fu-urg').textContent=urg+'건';
-  document.getElementById('br-fu-badge').textContent=cnt;
+  const cntEl=document.getElementById('fu-cnt');
+  const urgEl=document.getElementById('fu-urg');
+  const badgeEl=document.getElementById('br-fu-badge');
+  if(cntEl)cntEl.textContent=cnt+'건';
+  if(urgEl)urgEl.textContent=urg+'건';
+  if(badgeEl)badgeEl.textContent=cnt;
   el.innerHTML=`<div class="fu-hd"><span>회원 정보</span><span style="margin-left:auto;">경과 / 액션</span></div>`
     +(cnt===0
     ?`<div style="padding:24px;text-align:center;color:var(--gray);font-size:13px;">팔로업 대상이 없습니다 🎉</div>`
     :fuData.map((d,i)=>`<div class="fu-row">
-      <div class="fu-av">${d.name[0]+d.name[1]}</div>
+      <div class="fu-av">${(d.name||'?')[0]}${(d.name||'?')[1]||''}</div>
       <div class="fu-info">
-        <div class="fu-name">${d.name} <span class="day-b ${d.days>=7?'day-hot':d.days>=4?'day-warm':'day-cool'}">${d.days}일 경과</span></div>
-        <div class="fu-meta">${d.meta}</div>
+        <div class="fu-name">${d.name||''} <span class="day-b ${d.days>=7?'day-hot':d.days>=4?'day-warm':'day-cool'}">${d.days}일 경과</span></div>
+        <div class="fu-meta">${d.meta||''}</div>
       </div>
       <div class="fu-acts">
         <button class="btn-sm btn-sm-p" onclick="markDone(${i})">연락 완료</button>
