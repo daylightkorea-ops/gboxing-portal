@@ -1210,16 +1210,53 @@ function brGo(v){
     if(n)n.classList.toggle('act',id===v);
   });
   document.getElementById('br-page-title').textContent={input:'상담 입력',fu:'팔로업 목록'}[v]||'';
+  // 팔로업 탭 클릭 시 팔로업 시트에서 실시간 reload
+  if(v==='fu' && currentUser){
+    fetchSheet('팔로업').then(data=>{
+      if(data){
+        const {cols,rows}=data;
+        fuData=rows
+          .map(row=>rowToObj(cols,row))
+          .filter(obj=>obj['지점']===currentUser.name && obj['상태']!=='완료')
+          .map(obj=>{
+            const dateStr=obj['상담날짜']||'';
+            const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
+            return {
+              name:obj['이름']||'',
+              days,
+              meta:obj['비전환사유']||obj['메모']||'',
+              staff:obj['담당자']||'',
+            };
+          })
+          .sort((a,b)=>b.days-a.days);
+        renderBranchFU();
+      }
+    });
+  }
 }
 
 async function initBranch(a){
-  // 팔로업 — 신규상담 시트에서 해당 지점 미전환/팔로업 필요 행 추출
-  const surveyData = await fetchSheet('신규상담');
-  if(surveyData){
-    const sv=parseSurveyData(surveyData, a.name);
-    fuData=sv.followup.sort((x,y)=>y.days-x.days);
+  // 팔로업 시트에서 해당 지점 미완료 팔로업 로드
+  const fuSheetData = await fetchSheet('팔로업');
+  if(fuSheetData){
+    const {cols,rows}=fuSheetData;
+    fuData=rows
+      .map(row=>rowToObj(cols,row))
+      .filter(obj=>obj['지점']===a.name && obj['상태']!=='완료')
+      .map(obj=>{
+        const dateStr=obj['상담날짜']||'';
+        const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
+        return {
+          name:obj['이름']||'',
+          days,
+          meta:obj['비전환사유']||obj['메모']||'',
+          staff:obj['담당자']||'',
+        };
+      })
+      .sort((a,b)=>b.days-a.days);
   }
-  document.getElementById('br-fu-badge').textContent=fuData.length||0;
+  const badgeEl=document.getElementById('br-fu-badge');
+  if(badgeEl) badgeEl.textContent=fuData.length||0;
   renderBranchFU();
 }
 
@@ -1355,18 +1392,13 @@ async function saveConsult(){
 
     setTimeout(() => {
       console.log('저장 완료 처리 — result:', payload.result, 'isFU:', isFU);
-      if(isFU){
-        fuData.unshift({
-          name: payload.name || '신규 상담자',
-          days: 0,
-          meta: (payload.no_reason || '사유 미입력') + ' · 방금 입력'
-        });
-        renderBranchFU();
-      }
       btn.textContent = '✅ 저장 완료!';
       btn.disabled = false;
       setTimeout(()=>{ btn.textContent = original; }, 2000);
-      if(isFU) setTimeout(()=>brGo('fu'), 1800);
+      // 팔로업이면 Sheets 다시 불러와서 목록 업데이트
+      if(isFU){
+        brGo('fu'); // 팔로업 탭으로 이동 (탭 이동 시 자동 reload)
+      }
     }, 1500);
 
   } catch(err) {
