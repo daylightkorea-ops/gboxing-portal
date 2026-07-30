@@ -1272,8 +1272,9 @@ function getOther(id){ const el=document.getElementById(id); return (el&&el.clas
 async function saveConsult(){
   const surveyType = document.querySelector('.type-btn.on').textContent.includes('신규') ? 'new' : 'renew';
   const branch = currentUser ? currentUser.name : '';
-  const resultVal = getVal('result-sel');
+  console.log('saveConsult 시작 — type:', surveyType, 'branch:', branch);
 
+  const resultVal = getVal('result-sel');
   let payload = { type: surveyType, branch };
 
   if(surveyType === 'new'){
@@ -1338,6 +1339,9 @@ async function saveConsult(){
   btn.textContent = '저장 중...';
   btn.disabled = true;
 
+  console.log('payload:', JSON.stringify(payload));
+  console.log('API_URL:', API_URL);
+
   // Google Apps Script POST 전송
   try {
     fetch(API_URL, {
@@ -1350,6 +1354,7 @@ async function saveConsult(){
     const isFU = payload.result === '팔로업 필요' || payload.result === '미전환';
 
     setTimeout(() => {
+      console.log('저장 완료 처리 — result:', payload.result, 'isFU:', isFU);
       if(isFU){
         fuData.unshift({
           name: payload.name || '신규 상담자',
