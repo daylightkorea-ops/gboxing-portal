@@ -1291,7 +1291,7 @@ function toggleConvert(val){
   document.getElementById('no-convert-wrap').style.display=(val==='미전환'||val==='팔로업 필요')?'':'none';
 }
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxZYSiK3rL7GU_IvGgCkORjStPQlfg4HqaMHGA5Bjv7TEfAr75LotUwCm3ElnuceMwi1w/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzV1MGatGFkqktygZhgaUCdOA2UzdebEmVbze4ACIro3yvPb3RKbmk49HyLCk7jgn49Xw/exec';
 
 function getChecked(name){
   return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el=>el.parentElement.textContent.trim()).join(', ');
@@ -1343,12 +1343,12 @@ async function saveConsult(){
     // 일정
     payload.freq = getRadio('freq');
     payload.time = getRadio('time');
-    // 결과 — select value 직접 읽기 (value가 이미 한글)
     const resultSel = document.getElementById('result-sel');
-    payload.result    = resultSel ? resultSel.value : '';
-    payload.pass      = document.querySelector('#convert-pass-wrap select')?.value || '';
+    payload.result = resultSel ? resultSel.value : '';
+    // 등록 완료일 때만 회원권 전송, 미전환/팔로업은 빈칸
+    const isConverted = payload.result === '등록 완료';
+    payload.pass      = isConverted ? (document.querySelector('#convert-pass-wrap select')?.value || '') : '';
     payload.no_reason = document.querySelector('#no-convert-wrap input')?.value.trim() || '';
-    // 메모
     payload.memo = document.querySelectorAll('#sec-new textarea')[1]?.value.trim() || '';
 
   } else {
@@ -1436,8 +1436,34 @@ function renderBranchFU(){
     </div>`).join(''));
 }
 
-function delFU(i){if(confirm(fuData[i].name+' 팔로업을 삭제할까요?')){fuData.splice(i,1);renderBranchFU();}}
-function markDone(i){fuData.splice(i,1);renderBranchFU();}
+async function markDone(i){
+  const item=fuData[i];
+  if(!item)return;
+  try{
+    fetch(API_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'fu_done', name:item.name, branch:currentUser?currentUser.name:''}),
+    });
+  }catch(e){console.error('markDone error:',e);}
+  fuData.splice(i,1);
+  renderBranchFU();
+}
+
+async function delFU(i){
+  const item=fuData[i];
+  if(!item)return;
+  if(!confirm(item.name+' 팔로업을 삭제할까요?'))return;
+  try{
+    fetch(API_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'fu_delete', name:item.name, branch:currentUser?currentUser.name:''}),
+    });
+  }catch(e){console.error('delFU error:',e);}
+  fuData.splice(i,1);
+  renderBranchFU();
+}
 
 /* ─── CHARTS ─── */
 function drawDonut(id,vals,cols){
