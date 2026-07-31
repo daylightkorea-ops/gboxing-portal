@@ -883,6 +883,48 @@ function logout(){
   LIVE={hq:null,branches:{}};
 }
 
+/* ── 지난 7일 요약 계산 ── */
+function calc7DaySummary(surveyData, renewData, branch){
+  const now = new Date();
+  const cutoff = new Date(now - 7*24*60*60*1000);
+
+  // 신규상담 7일
+  const newRows = (surveyData?.rows||[])
+    .map(row=>rowToObj(surveyData.cols, row))
+    .filter(obj=>{
+      if(obj['지점']!==branch) return false;
+      const d=new Date(obj['상담날짜']);
+      return !isNaN(d) && d>=cutoff;
+    });
+
+  const newTotal = newRows.length;
+  const newMale  = newRows.filter(o=>o['성별']==='남성').length;
+  const newFemale= newRows.filter(o=>o['성별']==='여성').length;
+  const newConvert = newRows.filter(o=>o['전환여부']==='등록 완료').length;
+  const newFU      = newRows.filter(o=>o['전환여부']==='팔로업 필요'||o['전환여부']==='미전환').length;
+
+  // 재등록상담 7일
+  const renewRows = (renewData?.rows||[])
+    .map(row=>rowToObj(renewData.cols, row))
+    .filter(obj=>{
+      if(obj['지점']!==branch) return false;
+      const d=new Date(obj['상담날짜']);
+      return !isNaN(d) && d>=cutoff;
+    });
+
+  const renewTotal  = renewRows.length;
+  const renewMale   = renewRows.filter(o=>o['성별']==='남성').length;
+  const renewFemale = renewRows.filter(o=>o['성별']==='여성').length;
+  // 회원권별 집계
+  const passCount={};
+  renewRows.forEach(o=>{
+    const p=o['연장회원권']||'미기재';
+    passCount[p]=(passCount[p]||0)+1;
+  });
+
+  return {newTotal,newMale,newFemale,newConvert,newFU,renewTotal,renewMale,renewFemale,passCount};
+}
+
 /* ─── HQ ─── */
 const HQ_NAVS=['overview','jy','hj','yd','gr'];
 function hqGo(v){
@@ -901,7 +943,6 @@ function hqGo(v){
     document.getElementById('hq-title').textContent=bName+' 대시보드';
     const bd={...BRANCH_DATA[v],...(LIVE.branches[v]||{})};
     console.log('hqGo:',bName,'LIVE.hq:',!!LIVE.hq,'survey rows:',LIVE.hq?.survey?.rows?.length);
-    // 서베이 분포 + 담당자 데이터
     if(LIVE.hq && LIVE.hq.survey){
       const sv=parseSurveyData(LIVE.hq.survey, bName);
       if(sv.purpose.length) bd.purpose=sv.purpose;
@@ -909,6 +950,8 @@ function hqGo(v){
       const staff=parseStaffData(LIVE.hq.survey, bName);
       console.log('staff result for',bName,':',staff);
       if(staff.length) bd.staff=staff;
+      // 7일 요약
+      bd.summary7 = calc7DaySummary(LIVE.hq.survey, LIVE.hq.renew, bName);
     } else {
       console.warn('LIVE.hq.survey 없음 — 샘플 데이터 사용');
     }
@@ -922,11 +965,12 @@ async function initHQ(){
   overviewEl.style.opacity='0.4';
   overviewEl.style.pointerEvents='none';
 
-  const [memberData, surveyData] = await Promise.all([
+  const [memberData, surveyData, renewData] = await Promise.all([
     fetchSheet('회원현황'),
     fetchSheet('신규상담'),
+    fetchSheet('재등록상담'),
   ]);
-  LIVE.hq={member:memberData, survey:surveyData};
+  LIVE.hq={member:memberData, survey:surveyData, renew:renewData};
 
   const liveMembers=parseMemberData(memberData);
   Object.entries(liveMembers).forEach(([bk,bd])=>{
@@ -1066,6 +1110,52 @@ function renderBranchDetail(bd){
 
   document.getElementById('branch-detail-content').innerHTML=`
   <div style="display:flex;flex-direction:column;gap:13px;">
+    ${bd.summary7 ? (() => {
+      const s=bd.summary7;
+      const passEntries=Object.entries(s.passCount||{}).sort((a,b)=>b[1]-a[1]);
+      return `
+    <div class="card" style="border-left:3px solid ${bd.col};">
+      <div class="card-hd"><span class="card-t">📅 지난 7일 요약</span><span class="card-s">${new Date(Date.now()-7*864e5).toLocaleDateString('ko-KR')} ~ 오늘</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">신규 상담</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <div class="kpi" style="padding:10px 12px;">
+              <div class="kpi-l">총 신규</div>
+              <div class="kpi-v" style="font-size:18px;">${s.newTotal}명</div>
+              <div class="kpi-s nt">남 ${s.newMale} / 여 ${s.newFemale}</div>
+            </div>
+            <div class="kpi" style="padding:10px 12px;">
+              <div class="kpi-l">전환 성공</div>
+              <div class="kpi-v" style="font-size:18px;color:var(--green);">${s.newConvert}명</div>
+              <div class="kpi-s nt">전환율 ${s.newTotal?Math.round(s.newConvert/s.newTotal*100):0}%</div>
+            </div>
+            <div class="kpi" style="padding:10px 12px;">
+              <div class="kpi-l">팔로업/미전환</div>
+              <div class="kpi-v" style="font-size:18px;color:var(--red);">${s.newFU}명</div>
+              <div class="kpi-s nt">&nbsp;</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">재등록</div>
+          <div class="kpi" style="padding:10px 12px;margin-bottom:8px;">
+            <div class="kpi-l">총 재등록</div>
+            <div class="kpi-v" style="font-size:18px;">${s.renewTotal}명</div>
+            <div class="kpi-s nt">남 ${s.renewMale} / 여 ${s.renewFemale}</div>
+          </div>
+          ${passEntries.length?`
+          <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">회원권별</div>
+          ${passEntries.map(([n,v])=>`
+          <div class="dist-row" style="margin-bottom:4px;">
+            <span class="dist-name">${n}</span>
+            <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(v/s.renewTotal*100)}%;background:${bd.col};"></div></div>
+            <span class="dist-num">${v}명</span>
+          </div>`).join('')}`:'<div style="font-size:12px;color:var(--gray);">재등록 데이터 없음</div>'}
+        </div>
+      </div>
+    </div>`;
+    })() : ''}
     <div class="kg4">
       <div class="kpi"><div class="kpi-l">유효회원</div><div class="kpi-v">${bd.total}명</div><div class="kpi-s up">최신 기준</div></div>
       <div class="kpi"><div class="kpi-l">남성</div><div class="kpi-v">${bd.male}명</div><div class="kpi-s nt">${bd.mp}%</div></div>
