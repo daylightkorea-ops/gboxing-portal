@@ -887,15 +887,19 @@ function logout(){
 function calc7DaySummary(surveyData, renewData, branch){
   const now = new Date();
   const cutoff = new Date(now - 7*24*60*60*1000);
+  console.log('7일요약 branch:', branch, 'cutoff:', cutoff.toISOString());
 
-  // 신규상담 7일
-  const newRows = (surveyData?.rows||[])
-    .map(row=>rowToObj(surveyData.cols, row))
-    .filter(obj=>{
-      if(obj['지점']!==branch) return false;
-      const d=new Date(obj['상담날짜']);
-      return !isNaN(d) && d>=cutoff;
-    });
+  const allNewRows = (surveyData?.rows||[]).map(row=>rowToObj(surveyData.cols, row));
+  const branchRows = allNewRows.filter(o=>o['지점']===branch);
+  console.log('지점 신규 전체:', branchRows.length, '샘플날짜:', branchRows.slice(0,3).map(o=>o['상담날짜']));
+
+  const newRows = branchRows.filter(obj=>{
+    const raw = obj['상담날짜'];
+    const d = new Date(raw);
+    const ok = !isNaN(d) && d>=cutoff;
+    return ok;
+  });
+  console.log('7일내 신규:', newRows.length);
 
   const newTotal = newRows.length;
   const newMale  = newRows.filter(o=>o['성별']==='남성').length;
