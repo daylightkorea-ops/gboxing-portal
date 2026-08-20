@@ -694,10 +694,16 @@ function parseMemberData(data){
       target.map(r=>parseInt(r['6개월'])||0),
       target.map(r=>parseInt(r['연회원'])||0),
     ];
-    // 월 레이블도 함께 저장
-    const monthLabels=target.map(r=>{
+    // 월 레이블 — 연도 변경 시 연도 표시
+    const monthLabels=target.map((r,i)=>{
       const d=new Date(r['날짜']);
-      return isNaN(d)?r['날짜']:`${d.getMonth()+1}월`;
+      if(isNaN(d)) return r['날짜'];
+      const m=d.getMonth()+1;
+      const yr=d.getFullYear();
+      // 첫 번째이거나 연도가 바뀌면 연도 표시
+      const prevD=i>0?new Date(target[i-1]['날짜']):null;
+      const showYr=!prevD||isNaN(prevD)||prevD.getFullYear()!==yr;
+      return showYr?`${yr%100}/${m}월`:`${m}월`;
     });
     const total=parseInt(latest['총유효'])||0;
     const male=parseInt(latest['유효(남)'])||0;
