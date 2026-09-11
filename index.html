@@ -1,1607 +1,2205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>GBOXING 관리 포털</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G복싱 재활</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;
-  --green:#27500A;--green-l:#EAF3DE;--green-m:#1D9E75;
-  --red:#791F1F;--red-l:#FCEBEB;
-  --amber:#633806;--amber-l:#FAEEDA;
-  --pink:#E87DBB;--gray:#6B7280;
-  --bg:#F5F5F3;--bg2:#fafafa;--bg3:#f0f0f0;
-  --border:#e0e0e0;--text:#1a1a1a;--text2:#555;--white:#fff;
+/* ─── design tokens ─────────────────────────────────── */
+:root {
+  --bg:        #0e1016;
+  --surface:   #161921;
+  --elevated:  #1e2230;
+  --border:    #2b3045;
+  --red:       #e02d3c;
+  --red-dim:   #3a0d12;
+  --red-soft:  rgba(224,45,60,.12);
+  --green:     #22c55e;
+  --green-dim: #052914;
+  --amber:     #f59e0b;
+  --amber-dim: #2a1c05;
+  --blue:      #4f8ef7;
+  --text:      #e2e6f2;
+  --muted:     #68738f;
+  --faint:     #3a3f52;
+  --r:         10px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;}
-.hidden{display:none!important;}
 
-/* LOGIN */
-#page-login{display:flex;align-items:center;justify-content:center;min-height:100vh;}
-.login-box{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:36px 32px;width:360px;box-shadow:0 4px 24px rgba(0,0,0,.07);}
-.login-logo{font-size:20px;font-weight:700;margin-bottom:4px;}
-.login-logo em{color:var(--blue);font-style:normal;}
-.login-sub{font-size:12px;color:var(--gray);margin-bottom:24px;}
-.lf{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
-.lf label{font-size:11px;color:var(--gray);}
-.lf input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
-.lf input:focus{border-color:var(--blue);}
-.login-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;}
-.login-btn:hover{background:#0C447C;}
-.login-err{font-size:11px;color:var(--red);margin-top:6px;display:none;}
-.hint-box{margin-top:16px;padding:12px;background:var(--bg2);border-radius:10px;}
-.hint-title{font-size:11px;font-weight:600;margin-bottom:8px;}
-.hint-row{display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;border-radius:6px;}
-.hint-row:hover{background:var(--bg3);}
-.hint-name{font-size:12px;font-weight:500;flex:1;}
-.hint-id{font-size:10px;color:var(--gray);}
-.rtag{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;}
-.rt-hq{background:var(--blue-l);color:var(--blue);}
-.rt-br{background:var(--green-l);color:var(--green);}
+/* ─── reset ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,sans-serif;
+     font-size:15px;line-height:1.5;min-height:100vh;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea,select{font-family:inherit;font-size:inherit}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
 
-/* SHELL */
-.shell{display:flex;height:100vh;}
-.sidebar{width:216px;min-width:216px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-.sb-brand{padding:16px;border-bottom:1px solid var(--border);}
-.sb-logo{font-size:15px;font-weight:700;}
-.sb-logo em{color:var(--blue);font-style:normal;}
-.sb-meta{margin-top:9px;display:flex;align-items:center;gap:9px;}
-.sb-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
-.av-hq{background:var(--blue-l);color:var(--blue);}
-.av-br{background:var(--green-l);color:var(--green);}
-.sb-uname{font-size:12px;font-weight:600;}
-.nav-grp{padding:12px 10px 3px;font-size:10px;color:var(--gray);letter-spacing:.07em;text-transform:uppercase;font-weight:500;}
-.ni{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:7px;margin:1px 7px;}
-.ni:hover{background:var(--bg2);}
-.ni.act{background:var(--blue-l);color:var(--blue);font-weight:600;}
-.ni-ic{font-size:14px;width:18px;text-align:center;}
-.ni-badge{margin-left:auto;font-size:10px;background:var(--red-l);color:var(--red);padding:1px 7px;border-radius:8px;font-weight:600;}
-.sb-foot{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);}
-.logout-btn{width:100%;padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:7px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;gap:7px;}
-.logout-btn:hover{background:var(--bg2);}
+/* ─── utility ───────────────────────────────────────── */
+.hidden{display:none!important}
+.flex{display:flex}
+.col{flex-direction:column}
+.gap-4{gap:4px}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.text-muted{color:var(--muted)}
+.text-red{color:var(--red)}
+.text-green{color:var(--green)}
+.text-amber{color:var(--amber)}
+.text-blue{color:var(--blue)}
+.font-700{font-weight:700}
+.font-500{font-weight:500}
+.text-sm{font-size:13px}
+.text-xs{font-size:11px;letter-spacing:.04em}
+.text-right{text-align:right}
+.w-full{width:100%}
+.bebas{font-family:'Bebas Neue',sans-serif;letter-spacing:.03em}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;
+     font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.tag-stretch{background:var(--red-dim);color:var(--red)}
+.tag-disc{background:var(--amber-dim);color:var(--amber)}
+.tag-stretch-ex{background:rgba(79,142,247,.12);color:var(--blue)}
+.tag-power{background:rgba(34,197,94,.1);color:var(--green)}
 
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.tb-title{font-size:15px;font-weight:700;}
-.content{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:13px;}
-.view{display:none;flex-direction:column;gap:13px;}
-.view.on{display:flex;}
+/* ─── card ──────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.card-lg{padding:20px}
+.card+.card,.card+.card-lg{margin-top:10px}
 
-/* COMPONENTS */
-.kg4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-.kg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
-.kg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-.kpi{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.kpi-l{font-size:11px;color:var(--gray);margin-bottom:4px;}
-.kpi-v{font-size:22px;font-weight:700;line-height:1.1;}
-.kpi-s{font-size:11px;margin-top:4px;}
-.up{color:var(--green);}.dn{color:var(--red);}.nt{color:var(--gray);}
-.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;}
-.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.card-t{font-size:13px;font-weight:600;}
-.card-s{font-size:11px;color:var(--gray);}
-.row2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;}
-.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+/* ─── section title ─────────────────────────────────── */
+.section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+               color:var(--muted);margin-bottom:10px}
 
-/* BARS */
-.bar-chart{display:flex;align-items:flex-end;gap:5px;height:90px;}
-.bar-grp{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
-.bar-pair{display:flex;align-items:flex-end;gap:2px;height:65px;justify-content:center;}
-.bar{border-radius:3px 3px 0 0;width:12px;}
-.b-blue{background:var(--blue-m);}.b-green{background:var(--green-m);}
-.bar-lbl{font-size:9px;color:var(--gray);text-align:center;}
-.leg{display:flex;gap:12px;flex-wrap:wrap;}
-.leg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray);}
-.leg-dot{width:7px;height:7px;border-radius:50%;}
+/* ─── btn ───────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+     padding:9px 18px;border-radius:8px;font-weight:700;font-size:14px;
+     transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-red{background:var(--red);color:#fff}
+.btn-ghost{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
+.btn-sm{padding:6px 12px;font-size:13px;border-radius:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-full{width:100%}
 
-/* MEMBER BAR CARD with numbers */
-.mbr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.mbr-label{font-size:12px;font-weight:500;width:48px;flex-shrink:0;}
-.mbr-bar-bg{flex:1;height:22px;background:var(--bg3);border-radius:6px;overflow:hidden;position:relative;}
-.mbr-bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#fff;gap:6px;white-space:nowrap;}
-.mbr-nums{font-size:11px;color:var(--gray);white-space:nowrap;width:90px;flex-shrink:0;text-align:right;}
+/* ─── input ─────────────────────────────────────────── */
+.input{width:100%;padding:10px 14px;background:var(--elevated);border:1px solid var(--border);
+       border-radius:8px;color:var(--text);font-size:15px;outline:none;transition:border .15s}
+.input:focus{border-color:var(--red)}
+.input::placeholder{color:var(--muted)}
+textarea.input{resize:vertical;min-height:72px}
+.label{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;
+        text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 
-/* SVG LINE */
-.svg-line{width:100%;display:block;}
+/* ─── pain scale ────────────────────────────────────── */
+.pain-scale{display:flex;gap:4px}
+.pain-box{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;
+          justify-content:center;font-size:12px;font-weight:700;cursor:pointer;
+          border:2px solid transparent;transition:all .15s;color:var(--muted);background:var(--elevated)}
+.pain-box.active-0{background:rgba(34,197,94,.12);color:var(--green);border-color:var(--green)}
+.pain-box.active-1,.pain-box.active-2,.pain-box.active-3{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.pain-box.active-4,.pain-box.active-5,.pain-box.active-6{background:var(--amber-dim);color:var(--amber);border-color:var(--amber)}
+.pain-box.active-7,.pain-box.active-8,.pain-box.active-9,.pain-box.active-10{background:var(--red-dim);color:var(--red);border-color:var(--red)}
 
-/* DONUT */
-.donut-wrap{display:flex;align-items:center;gap:14px;justify-content:center;padding:4px 0;}
-.donut-leg{display:flex;flex-direction:column;gap:7px;}
-.donut-i{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--gray);}
-.donut-clr{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+/* ─── checkbox item ─────────────────────────────────── */
+.ex-item{display:flex;gap:12px;align-items:flex-start;padding:12px;
+         background:var(--elevated);border-radius:8px;border:1px solid var(--border);
+         transition:border-color .15s,background .15s;cursor:pointer}
+.ex-item.done{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.25)}
+.ex-check{width:22px;height:22px;border-radius:5px;border:2px solid var(--border);
+          flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
+          transition:all .15s}
+.ex-item.done .ex-check{background:var(--green);border-color:var(--green)}
+.check-svg{opacity:0;transition:opacity .15s}
+.ex-item.done .check-svg{opacity:1}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:14px;font-weight:500;line-height:1.35}
+.ex-sets{font-size:12px;color:var(--muted);margin-top:3px}
+.ex-note{font-size:11px;color:var(--faint);margin-top:4px;font-style:italic}
 
-/* PIE CHART CANVAS */
-.pie-wrap{display:flex;align-items:center;gap:12px;justify-content:center;}
-.pie-leg{display:flex;flex-direction:column;gap:5px;}
-.pie-i{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray);}
-.pie-clr{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+/* ─── views ─────────────────────────────────────────── */
+.view{min-height:100vh}
 
-/* TABLE */
-.tbl{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.tbl-hd{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-table{width:100%;border-collapse:collapse;font-size:12px;}
-th{padding:8px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--gray);background:var(--bg2);white-space:nowrap;}
-td{padding:9px 14px;border-top:1px solid var(--border);color:var(--text);vertical-align:middle;}
-.badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500;white-space:nowrap;}
-.b-gr{background:var(--green-l);color:var(--green);}
-.b-am{background:var(--amber-l);color:var(--amber);}
-.b-rd{background:var(--red-l);color:var(--red);}
-.b-bl{background:var(--blue-l);color:var(--blue);}
-.prog-w{display:flex;align-items:center;gap:8px;}
-.prog-bg{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
-.prog-f{height:100%;border-radius:2px;}
-.prog-l{font-size:11px;font-weight:500;width:30px;text-align:right;}
+/* ─────────────────────────────────────────────────────
+   LOGIN
+───────────────────────────────────────────────────── */
+#v-login{display:flex;flex-direction:column;align-items:center;justify-content:center;
+         min-height:100vh;padding:24px;background:var(--bg)}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:.05em;
+            color:var(--red);line-height:1;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:40px;letter-spacing:.08em;text-transform:uppercase}
+.login-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);
+            border-radius:14px;padding:28px}
+.login-who{display:flex;gap:8px;margin-bottom:20px}
+.who-btn{flex:1;padding:10px 6px;border-radius:8px;background:var(--elevated);
+         border:2px solid var(--border);color:var(--muted);font-weight:700;font-size:13px;
+         transition:all .15s}
+.who-btn.selected{border-color:var(--red);color:var(--text);background:var(--red-soft)}
+.login-field{margin-bottom:16px}
+.login-error{color:var(--red);font-size:13px;text-align:center;margin-top:10px;min-height:20px}
 
-/* PASS BARS */
-.pass-row{margin-bottom:9px;}
-.pass-meta{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:var(--text2);}
-.pass-bg{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
-.pass-fill{height:100%;border-radius:4px;}
+/* ─────────────────────────────────────────────────────
+   ADMIN LAYOUT
+───────────────────────────────────────────────────── */
+#v-admin{display:flex;min-height:100vh}
+.admin-sidebar{width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+               display:flex;flex-direction:column;padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-brand{padding:0 18px 20px;font-family:'Bebas Neue',sans-serif;font-size:22px;
+               letter-spacing:.05em;color:var(--red)}
+.sidebar-brand span{color:var(--muted);font-size:11px;display:block;font-family:'Noto Sans KR',sans-serif;
+                    font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:-2px}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:14px;
+               font-weight:500;color:var(--muted);transition:all .15s;border-radius:0}
+.sidebar-nav a.active{color:var(--text);background:var(--elevated);border-left:3px solid var(--red)}
+.sidebar-nav a:not(.active):hover{color:var(--text);background:rgba(255,255,255,.04)}
+.sidebar-nav .nav-section{padding:14px 18px 4px;font-size:10px;font-weight:700;letter-spacing:.12em;
+                           text-transform:uppercase;color:var(--faint)}
+.sidebar-logout{margin-top:auto;padding:12px 18px 0;border-top:1px solid var(--border)}
+.admin-main{flex:1;min-width:0;padding:24px;overflow-y:auto;max-height:100vh}
 
-/* FORM */
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
-.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
-.fg{display:flex;flex-direction:column;gap:4px;}
-.fg.full{grid-column:1/-1;}
-.fg label{font-size:11px;color:var(--gray);font-weight:500;}
-.fi{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;outline:none;background:var(--white);color:var(--text);width:100%;}
-.fi:focus{border-color:var(--blue);}
-.fi[readonly]{background:var(--bg2);color:var(--gray);}
-textarea.fi{resize:none;height:60px;}
-.sec-lbl{font-size:12px;font-weight:700;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:10px;margin-top:6px;color:var(--text);}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
-.chip{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);color:var(--gray);cursor:pointer;background:var(--white);}
-.chip.on{background:var(--blue-l);color:var(--blue);border-color:var(--blue-m);}
-.chk-grp{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:4px;}
-.chk-i{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;}
-.chk-i input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);}
-.radio-grp{display:flex;flex-wrap:wrap;gap:6px 16px;}
-.radio-i{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;}
-.radio-i input[type=radio]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);}
-.survey-type{display:flex;gap:8px;margin-bottom:14px;}
-.type-btn{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;cursor:pointer;text-align:center;background:var(--white);color:var(--gray);}
-.type-btn.on{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:600;}
-.btn-row{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
-.btn{padding:7px 16px;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--text);}
-.btn:hover{background:var(--bg2);}
-.btn-p{background:var(--blue);color:#fff;border-color:var(--blue);}
-.btn-p:hover{background:#0C447C;}
-.notice{font-size:11px;color:var(--gray);padding:9px 13px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--blue-m);}
-.other-input{display:none;margin-top:6px;}
-.other-input.on{display:block;}
-.inline-note{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
+/* ─────────────────────────────────────────────────────
+   ADMIN SUBVIEWS
+───────────────────────────────────────────────────── */
+.subview{display:none}
+.subview.active{display:block}
+.page-header{margin-bottom:22px}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.03em}
+.page-desc{font-size:13px;color:var(--muted);margin-top:3px}
 
-/* FOLLOWUP */
-.fu-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.fu-hd{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--gray);display:flex;}
-.fu-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-top:1px solid var(--border);}
-.fu-row:first-of-type{border-top:none;}
-.fu-av{width:32px;height:32px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0;}
-.fu-info{flex:1;min-width:0;}
-.fu-name{font-size:13px;font-weight:600;}
-.fu-meta{font-size:11px;color:var(--gray);margin-top:2px;}
-.fu-acts{display:flex;gap:6px;flex-shrink:0;}
-.btn-sm{font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--text);}
-.btn-sm:hover{background:var(--bg2);}
-.btn-sm-p{background:var(--blue);color:#fff;border-color:var(--blue);}
-.btn-sm-del{background:var(--red-l);color:var(--red);border-color:var(--red-l);}
-.btn-sm-del:hover{background:#f5c0c0;}
-.day-b{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;}
-.day-hot{background:var(--red-l);color:var(--red);}
-.day-warm{background:var(--amber-l);color:var(--amber);}
-.day-cool{background:var(--green-l);color:var(--green);}
+/* user status cards (admin dashboard) */
+.user-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:680px){.user-cards{grid-template-columns:1fr}}
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+           padding:18px;cursor:pointer;transition:border-color .15s}
+.user-card:hover{border-color:var(--red)}
+.user-card-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.user-card-cond{font-size:12px;color:var(--muted);margin-bottom:14px}
+.pain-row{display:flex;justify-content:space-between;margin-bottom:8px}
+.pain-label{font-size:11px;color:var(--muted)}
+.pain-val{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;background:var(--red);border-radius:2px;transition:width .3s}
 
-/* SURVEY DIST CHARTS */
-.dist-section{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;}
-.dist-title{font-size:13px;font-weight:600;margin-bottom:14px;}
-.dist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
-.dist-item{display:flex;flex-direction:column;gap:8px;}
-.dist-label{font-size:11px;font-weight:600;color:var(--text2);}
-.dist-bars{display:flex;flex-direction:column;gap:4px;}
-.dist-row{display:flex;align-items:center;gap:6px;}
-.dist-name{font-size:10px;color:var(--gray);width:70px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dist-bar-bg{flex:1;height:12px;background:var(--bg3);border-radius:3px;overflow:hidden;}
-.dist-bar-fill{height:100%;border-radius:3px;background:var(--blue-m);}
-.dist-num{font-size:10px;color:var(--gray);width:28px;text-align:right;flex-shrink:0;}
+/* schedule editor */
+.schedule-grid{display:flex;flex-direction:column;gap:8px}
+.sched-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;
+            background:var(--elevated);border-radius:8px;border:1px solid var(--border)}
+.sched-drag{color:var(--faint);cursor:grab;font-size:16px;padding-top:2px}
+.sched-info{flex:1;min-width:0}
+.sched-cat{display:inline-block;margin-bottom:4px}
+.sched-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.sched-meta{font-size:12px;color:var(--muted)}
+.sched-del{color:var(--muted);font-size:18px;padding:2px 6px;border-radius:4px;
+           transition:color .15s;flex-shrink:0}
+.sched-del:hover{color:var(--red)}
+.add-ex-form{background:var(--elevated);border:1px dashed var(--border);border-radius:8px;
+             padding:14px;margin-top:10px}
+.add-ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+
+/* records table */
+.records-table{width:100%;border-collapse:collapse;font-size:13px}
+.records-table th{text-align:left;padding:8px 10px;font-size:11px;font-weight:700;
+                  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+                  border-bottom:1px solid var(--border)}
+.records-table td{padding:10px;border-bottom:1px solid rgba(43,48,69,.6)}
+.records-table tr:last-child td{border-bottom:none}
+.records-table tr:hover td{background:rgba(255,255,255,.02)}
+.pain-pill{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;
+           border-radius:5px;font-size:12px;font-weight:700}
+.pain-low{background:var(--green-dim);color:var(--green)}
+.pain-mid{background:var(--amber-dim);color:var(--amber)}
+.pain-high{background:var(--red-dim);color:var(--red)}
+
+/* AI chat */
+.chat-layout{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+.chat-config{display:flex;gap:8px;margin-bottom:12px;align-items:flex-end;flex-wrap:wrap}
+.chat-messages{flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);
+               padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface);
+               scroll-behavior:smooth}
+.msg{max-width:82%;padding:11px 14px;border-radius:10px;font-size:14px;line-height:1.55;white-space:pre-wrap}
+.msg-user{align-self:flex-end;background:var(--red);color:#fff}
+.msg-ai{align-self:flex-start;background:var(--elevated);color:var(--text)}
+.msg-system{align-self:center;background:transparent;color:var(--muted);font-size:12px;
+            border:1px dashed var(--border);text-align:center;max-width:90%}
+.chat-input-row{display:flex;gap:8px;margin-top:12px}
+.chat-input-row textarea{flex:1}
+.chat-thinking{align-self:flex-start;color:var(--muted);font-size:13px;
+               padding:8px 12px;background:var(--elevated);border-radius:8px}
+/* attachment */
+.attach-btn{width:38px;height:38px;border-radius:8px;background:var(--elevated);
+            border:1px solid var(--border);display:flex;align-items:center;
+            justify-content:center;cursor:pointer;flex-shrink:0;align-self:flex-end;
+            transition:border-color .15s;color:var(--muted)}
+.attach-btn:hover{border-color:var(--blue);color:var(--blue)}
+.attach-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.attach-thumb{position:relative;width:64px;height:64px;border-radius:6px;
+              overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.attach-thumb img,.attach-thumb video{width:100%;height:100%;object-fit:cover}
+.attach-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);
+                  border-radius:50%;width:16px;height:16px;display:flex;
+                  align-items:center;justify-content:center;cursor:pointer;
+                  font-size:10px;color:#fff;line-height:1}
+.msg-img{max-width:220px;border-radius:8px;margin-top:6px;display:block}
+.msg-video{max-width:220px;border-radius:8px;margin-top:6px;display:block}
+
+/* ─────────────────────────────────────────────────────
+   USER LAYOUT
+───────────────────────────────────────────────────── */
+#v-user{display:flex;flex-direction:column;min-height:100vh}
+.user-header{background:var(--surface);border-bottom:1px solid var(--border);
+             padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+             position:sticky;top:0;z-index:50}
+.user-header-name{font-size:13px;color:var(--muted)}
+.user-header-cond{font-size:14px;font-weight:700}
+.user-content{flex:1;padding:18px;padding-bottom:80px;overflow-y:auto}
+.user-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+          border-top:1px solid var(--border);display:flex;z-index:50;
+          padding-bottom:env(safe-area-inset-bottom)}
+.user-nav-btn{flex:1;padding:12px 4px;display:flex;flex-direction:column;align-items:center;
+              gap:3px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+              color:var(--muted);transition:color .15s;cursor:pointer;border:none;background:none}
+.user-nav-btn.active{color:var(--red)}
+.user-nav-icon{font-size:20px;line-height:1}
+.user-subview{display:none}
+.user-subview.active{display:block}
+
+/* D-30 countdown */
+.countdown-block{text-align:center;padding:28px 0 24px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.countdown-d{font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:.95;
+             color:var(--red);letter-spacing:.02em}
+.countdown-label{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:.08em;text-transform:uppercase}
+.countdown-date{font-size:11px;color:var(--faint);margin-top:4px}
+.countdown-pre{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--amber)}
+.countdown-done{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--green)}
+
+/* rest day */
+.rest-day{text-align:center;padding:32px 20px;color:var(--muted)}
+.rest-icon{font-size:40px;margin-bottom:8px}
+
+/* log form */
+.log-section{margin-bottom:22px}
+.sleep-row{display:flex;gap:6px;align-items:center}
+.sleep-val{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;min-width:52px}
+.sleep-btn{width:36px;height:36px;border-radius:8px;background:var(--elevated);
+           border:1px solid var(--border);color:var(--text);font-size:18px;font-weight:700;
+           display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.sleep-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* history */
+.hist-card{padding:14px;background:var(--elevated);border-radius:8px;border:1px solid var(--border);
+           margin-bottom:8px}
+.hist-date{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.hist-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.hist-row-label{color:var(--muted)}
+
+/* settings */
+.settings-section{margin-bottom:28px}
+.settings-section h3{font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;
+                      border-bottom:1px solid var(--border)}
+.settings-row{margin-bottom:14px}
+.settings-desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
+.api-key-row{display:flex;gap:8px}
+.api-key-row input{flex:1}
+
+/* ─── week grid (admin dashboard) ───────────────────── */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:10px 0 12px}
+.week-cell{background:var(--elevated);border:1px solid var(--border);border-radius:5px;
+           padding:6px 3px;text-align:center;min-width:0;transition:border-color .15s}
+.week-cell.is-today{border-color:var(--red);background:var(--red-soft)}
+.week-cell.is-ex{border-color:rgba(79,142,247,.35)}
+.wk-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+          color:var(--muted);margin-bottom:1px}
+.wk-date{font-size:8px;color:var(--faint);margin-bottom:4px}
+.wk-badge{font-size:8px;font-weight:700;padding:2px 3px;border-radius:3px;
+          display:inline-block;margin-bottom:3px;letter-spacing:.01em}
+.wk-done{background:rgba(34,197,94,.15);color:var(--green)}
+.wk-miss{background:rgba(245,158,11,.12);color:var(--amber)}
+.wk-rest{color:var(--faint);font-size:8px;display:block;margin-bottom:3px}
+.wk-pain{font-size:8px;color:var(--muted);line-height:1.7}
+.wk-pain .p-lo{color:var(--green);font-weight:700}
+.wk-pain .p-mi{color:var(--amber);font-weight:700}
+.wk-pain .p-hi{color:var(--red);font-weight:700}
+.wk-empty{color:var(--faint);font-size:8px}
+
+/* ─── coach detail week tab ──────────────────────────── */
+.wdd-card{background:var(--elevated);border:1px solid var(--border);border-radius:8px;
+          padding:14px;margin-bottom:8px}
+.wdd-card.is-today{border-color:var(--red)}
+.wdd-card.is-ex-day{border-left:3px solid var(--blue)}
+.wdd-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.wdd-title{font-weight:700;font-size:14px}
+.wdd-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.wdd-pain-row{display:flex;gap:14px;font-size:12px;margin-bottom:10px;flex-wrap:wrap}
+.wdd-pain-item{display:flex;align-items:center;gap:5px}
+.wdd-pain-label{color:var(--muted)}
+.wdd-exlist{display:flex;flex-direction:column;gap:0}
+.wdd-ex{display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 0;
+        border-bottom:1px solid rgba(43,48,69,.4)}
+.wdd-ex:last-child{border-bottom:none}
+.wdd-chk{width:16px;height:16px;border-radius:3px;flex-shrink:0;
+          display:flex;align-items:center;justify-content:center}
+.chk-done{background:var(--green)}
+.chk-pending{border:1.5px solid var(--border)}
+
+/* ─── coach AI chat ──────────────────────────────────── */
+.coach-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px)}
+.coach-chat-msgs{flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);
+                 padding:16px;display:flex;flex-direction:column;gap:12px;
+                 background:var(--surface);scroll-behavior:smooth}
+.coach-chat-row{display:flex;gap:8px;margin-top:10px}
+.coach-chat-row textarea{flex:1}
+
+/* mobile admin */
+@media(max-width:768px){
+  #v-admin{flex-direction:column}
+  .admin-sidebar{width:100%;height:auto;position:static;flex-direction:row;padding:10px 0;
+                 overflow-x:auto;flex-wrap:nowrap;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-brand{display:none}
+  .sidebar-nav{display:flex;flex-direction:row;gap:2px;padding:0 8px}
+  .sidebar-nav .nav-section{display:none}
+  .sidebar-nav a{white-space:nowrap;padding:8px 12px;border-radius:8px;font-size:13px}
+  .sidebar-nav a.active{border-left:none;border-bottom:3px solid var(--red)}
+  .sidebar-logout{margin-top:0;padding:0 8px;border-top:none}
+  .admin-main{max-height:none;padding:16px}
+  .user-cards{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
-<div id="page-login">
-  <div class="login-box">
-    <div class="login-logo"><em>G</em>BOXING 관리 포털</div>
-    <div class="login-sub">지점 상담 & 회원 관리 시스템</div>
-    <div class="lf"><label>아이디</label><input type="text" id="inp-id" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="lf"><label>비밀번호</label><input type="password" id="inp-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="login-err" id="lerr">아이디 또는 비밀번호가 올바르지 않습니다.</div>
-    <button class="login-btn" onclick="doLogin()">로그인</button>
-    <div class="hint-box">
-      <div class="hint-title">테스트 계정 (클릭하면 자동 입력)</div>
-      <div class="hint-row" onclick="fill('gboxingjy','1234')"><span class="hint-name">주엽점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingjy / 1234</span></div>
-      <div class="hint-row" onclick="fill('gboxinghj','1234')"><span class="hint-name">화정점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinghj / 1234</span></div>
-      <div class="hint-row" onclick="fill('gboxingyd','1234')"><span class="hint-name">야당점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxingyd / 1234</span></div>
-      <div class="hint-row" onclick="fill('gboxinggr','1234')"><span class="hint-name">구래점</span><span class="rtag rt-br">코치</span><span class="hint-id">gboxinggr / 1234</span></div>
+<!-- ════════════════════════════════════════════════════
+     LOGIN
+═══════════════════════════════════════════════════════ -->
+<div id="v-login" class="view">
+  <div id="login-logo" class="login-logo">G복싱</div>
+  <div class="login-sub">재활 프로그램 · Rehab Tracker</div>
+  <div class="login-card">
+    <div class="login-who flex gap-8" id="who-btns">
+      <button class="who-btn" data-who="admin">관리자</button>
+      <button class="who-btn" data-who="yuchan">김유찬</button>
+      <button class="who-btn" data-who="seungwoo">한승우</button>
     </div>
+    <div class="login-field">
+      <label class="label" for="pw-input">비밀번호</label>
+      <input class="input" id="pw-input" type="password" placeholder="비밀번호 입력" autocomplete="current-password">
+    </div>
+    <button class="btn btn-red btn-full" id="login-btn">로그인</button>
+    <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
-<!-- ═══ HQ SHELL ═══ -->
-<div id="page-hq" class="shell hidden">
-  <div class="sidebar">
-    <div class="sb-brand">
-      <div class="sb-logo"><em>G</em>BOXING 관리 포털</div>
-      <div class="sb-meta">
-        <div class="sb-av av-hq">본</div>
-        <div><div class="sb-uname">본사 (임원)</div></div>
-      </div>
+<!-- ════════════════════════════════════════════════════
+     ADMIN
+═══════════════════════════════════════════════════════ -->
+<div id="v-admin" class="view hidden">
+  <nav class="admin-sidebar">
+    <div class="sidebar-brand">G복싱<span>관리자</span></div>
+    <nav class="sidebar-nav" id="admin-nav">
+      <div class="nav-section">대시보드</div>
+      <a href="#" data-sv="a-dashboard" class="active">홈</a>
+      <div class="nav-section">코치</div>
+      <a href="#" data-sv="a-yuchan">김유찬</a>
+      <a href="#" data-sv="a-seungwoo">한승우</a>
+      <div class="nav-section">도구</div>
+      <a href="#" data-sv="a-chat">AI 채팅</a>
+      <a href="#" data-sv="a-settings">설정</a>
+    </nav>
+    <div class="sidebar-logout">
+      <button class="btn btn-ghost btn-sm btn-full" onclick="logout()">로그아웃</button>
     </div>
-    <div class="nav-grp">전지점 현황</div>
-    <div class="ni act" onclick="hqGo('overview')" id="hn-overview"><span class="ni-ic">📊</span>전체 대시보드</div>
-    <div class="nav-grp">지점별</div>
-    <div class="ni" onclick="hqGo('jy')" id="hn-jy"><span class="ni-ic">📍</span>주엽점</div>
-    <div class="ni" onclick="hqGo('hj')" id="hn-hj"><span class="ni-ic">📍</span>화정점</div>
-    <div class="ni" onclick="hqGo('yd')" id="hn-yd"><span class="ni-ic">📍</span>야당점</div>
-    <div class="ni" onclick="hqGo('gr')" id="hn-gr"><span class="ni-ic">📍</span>구래점</div>
-    <div class="sb-foot"><button class="logout-btn" onclick="logout()">← 로그아웃</button></div>
-  </div>
-  <div class="main">
-    <div class="topbar">
-      <span class="tb-title" id="hq-title">전체 대시보드</span>
-      <span class="rtag rt-hq">본사 임원 뷰</span>
-    </div>
-    <div class="content">
+  </nav>
 
-      <!-- HQ: OVERVIEW -->
-      <div id="hv-overview" class="view on">
-        <div class="kg4">
-          <div class="kpi"><div class="kpi-l">전체 유효회원</div><div class="kpi-v">1,248명</div><div class="kpi-s up">↑ 47명 이번 달</div></div>
-          <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v">724명</div><div class="kpi-s up">↑ 28명</div></div>
-          <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v">524명</div><div class="kpi-s up">↑ 19명</div></div>
-          <div class="kpi"><div class="kpi-l">이번 달 재등록</div><div class="kpi-v">183명</div><div class="kpi-s up">↑ 12% 전월</div></div>
-        </div>
-        <!-- 지점별 유효회원 & 재등록 with numbers -->
-        <div class="card">
-          <div class="card-hd"><span class="card-t">지점별 유효회원 & 재등록</span><span class="card-s">5월 기준</span></div>
-          <div style="margin-bottom:10px;">
-            <div class="mbr-row">
-              <span class="mbr-label">주엽점</span>
-              <div class="mbr-bar-bg">
-                <div class="mbr-bar-fill" style="width:100%;background:var(--blue-m);">유효 342명</div>
-              </div>
-              <div class="mbr-bar-bg" style="max-width:140px;">
-                <div class="mbr-bar-fill" style="width:100%;background:var(--green-m);">재등록 78명</div>
-              </div>
-            </div>
-            <div class="mbr-row">
-              <span class="mbr-label">화정점</span>
-              <div class="mbr-bar-bg">
-                <div class="mbr-bar-fill" style="width:93%;background:var(--blue-m);">유효 318명</div>
-              </div>
-              <div class="mbr-bar-bg" style="max-width:140px;">
-                <div class="mbr-bar-fill" style="width:78%;background:var(--green-m);">재등록 61명</div>
-              </div>
-            </div>
-            <div class="mbr-row">
-              <span class="mbr-label">야당점</span>
-              <div class="mbr-bar-bg">
-                <div class="mbr-bar-fill" style="width:85%;background:var(--blue-m);">유효 291명</div>
-              </div>
-              <div class="mbr-bar-bg" style="max-width:140px;">
-                <div class="mbr-bar-fill" style="width:62%;background:var(--green-m);">재등록 48명</div>
-              </div>
-            </div>
-            <div class="mbr-row">
-              <span class="mbr-label">구래점</span>
-              <div class="mbr-bar-bg">
-                <div class="mbr-bar-fill" style="width:87%;background:var(--blue-m);">유효 297명</div>
-              </div>
-              <div class="mbr-bar-bg" style="max-width:140px;">
-                <div class="mbr-bar-fill" style="width:87%;background:var(--green-m);">재등록 68명</div>
-              </div>
-            </div>
-          </div>
-          <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:var(--blue-m);"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:var(--green-m);"></div>재등록</div></div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><span class="card-t">전지점 유효회원 월별 변화</span><span class="card-s">2025년 1~12월</span></div>
-          <svg class="svg-line" id="svg-total" viewBox="0 0 600 95" style="height:95px;"></svg>
-          <div class="leg" style="margin-top:4px;">
-            <div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>주엽</div>
-            <div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>화정</div>
-            <div class="leg-i"><div class="leg-dot" style="background:#D85A30;"></div>야당</div>
-            <div class="leg-i"><div class="leg-dot" style="background:#7F77DD;"></div>구래</div>
-          </div>
-        </div>
-        <div class="row2">
-          <div class="card">
-            <div class="card-hd"><span class="card-t">전체 성별 분포</span></div>
-            <div class="donut-wrap">
-              <canvas id="hq-donut" width="88" height="88"></canvas>
-              <div class="donut-leg">
-                <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 724명 (58%)</div>
-                <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 524명 (42%)</div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-hd"><span class="card-t">전체 회원권 분포</span></div>
-            <div id="hq-pass-bars">
-              <div class="pass-row"><div class="pass-meta"><span>1개월권</span><span style="font-weight:600;">284명 (23%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:23%;background:var(--blue-m);"></div></div></div>
-              <div class="pass-row"><div class="pass-meta"><span>3개월권</span><span style="font-weight:600;">512명 (41%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:41%;background:var(--blue-m);"></div></div></div>
-              <div class="pass-row"><div class="pass-meta"><span>6개월권</span><span style="font-weight:600;">318명 (26%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:26%;background:var(--green-m);"></div></div></div>
-              <div class="pass-row"><div class="pass-meta"><span>PT 패키지</span><span style="font-weight:600;">134명 (11%)</span></div><div class="pass-bg"><div class="pass-fill" style="width:11%;background:var(--green-m);"></div></div></div>
-            </div>
-          </div>
+  <main class="admin-main">
+
+    <!-- DASHBOARD -->
+    <section class="subview active" id="a-dashboard">
+      <div class="page-header">
+        <div class="page-title">재활 현황</div>
+        <div class="page-desc" id="admin-date-str"></div>
+      </div>
+      <div class="user-cards" id="admin-user-cards">
+        <!-- JS-rendered -->
+      </div>
+      <div class="section-title">오늘의 기록 현황</div>
+      <div class="card" id="admin-today-records">
+        <span class="text-muted text-sm">로딩 중…</span>
+      </div>
+    </section>
+
+    <!-- YUCHAN DETAIL -->
+    <section class="subview" id="a-yuchan">
+      <div class="page-header flex justify-between items-center">
+        <div>
+          <div class="page-title">김유찬 코치님</div>
+          <div class="page-desc">운동일: 월 · 수 · 금 · 토</div>
         </div>
       </div>
-
-      <!-- HQ: 각 지점 대시보드 (동적으로 렌더링) -->
-      <div id="hv-branch-detail" class="view">
-        <div id="branch-detail-content"></div>
+      <div class="flex gap-8" style="margin-bottom:16px">
+        <button class="btn btn-ghost btn-sm btn-red" data-tab="week" onclick="adminTab('yuchan','week',this)">이번 주</button>
+        <button class="btn btn-ghost btn-sm" data-tab="records" onclick="adminTab('yuchan','records',this)">기록</button>
       </div>
+      <div id="yuchan-tab-week">
+        <div class="section-title">이번 주 현황</div>
+        <div id="week-yuchan"></div>
+      </div>
+      <div id="yuchan-tab-records" class="hidden">
+        <div class="section-title">기록 내역</div>
+        <div class="card" style="overflow-x:auto"><table class="records-table" id="tbl-yuchan"></table></div>
+      </div>
+    </section>
 
-    </div>
-  </div>
+    <!-- SEUNGWOO DETAIL -->
+    <section class="subview" id="a-seungwoo">
+      <div class="page-header flex justify-between items-center">
+        <div>
+          <div class="page-title">한승우 코치님</div>
+          <div class="page-desc">운동일: 월 · 수 · 금 · 토</div>
+        </div>
+      </div>
+      <div class="flex gap-8" style="margin-bottom:16px">
+        <button class="btn btn-ghost btn-sm btn-red" data-tab="week" onclick="adminTab('seungwoo','week',this)">이번 주</button>
+        <button class="btn btn-ghost btn-sm" data-tab="records" onclick="adminTab('seungwoo','records',this)">기록</button>
+      </div>
+      <div id="seungwoo-tab-week">
+        <div class="section-title">이번 주 현황</div>
+        <div id="week-seungwoo"></div>
+      </div>
+      <div id="seungwoo-tab-records" class="hidden">
+        <div class="section-title">기록 내역</div>
+        <div class="card" style="overflow-x:auto"><table class="records-table" id="tbl-seungwoo"></table></div>
+      </div>
+    </section>
+
+    <!-- AI CHAT -->
+    <section class="subview" id="a-chat">
+      <div class="page-header">
+        <div class="page-title">AI 채팅</div>
+        <div class="page-desc">운동 프로그램 상담 · 수정 제안</div>
+      </div>
+      <div class="chat-config">
+        <div>
+          <div class="label">AI 제공자</div>
+          <select class="input" id="ai-provider" style="width:auto;padding:8px 12px">
+            <option value="openai">ChatGPT (OpenAI)</option>
+            <option value="claude">Claude (Anthropic)</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <div class="label" id="api-key-label">OpenAI API Key</div>
+          <div class="api-key-row">
+            <input class="input" id="ai-api-key" type="password" placeholder="sk-…">
+            <button class="btn btn-ghost btn-sm" onclick="saveApiKey()">저장</button>
+          </div>
+        </div>
+        <div>
+          <div class="label">코치 컨텍스트</div>
+          <select class="input" id="chat-context" style="width:auto;padding:8px 12px">
+            <option value="both">전체</option>
+            <option value="yuchan">김유찬</option>
+            <option value="seungwoo">한승우</option>
+          </select>
+        </div>
+      </div>
+      <div class="chat-layout" style="height:calc(100vh - 280px)">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg msg-system">AI에게 운동 프로그램에 대해 질문하거나 수정을 요청하세요.<br>예: "김유찬 코치님 운동 강도 높이는 방법?" / "한승우 코치님 고관절 가동성 좋아지는 스트레칭 추가해줘"<br><br>Anthropic API는 브라우저에서 CORS 오류가 날 수 있습니다. 오류 발생 시 ChatGPT(OpenAI)를 추천합니다.</div>
+        </div>
+        <div>
+          <div id="admin-attach-preview" class="attach-preview"></div>
+          <div class="chat-input-row">
+            <label class="attach-btn" title="사진/영상 첨부">
+              <input type="file" id="admin-file-input" accept="image/*,video/*" multiple style="display:none" onchange="handleAttach(this,'admin')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </label>
+            <textarea class="input" id="chat-input" placeholder="메시지 입력… (사진/영상 첨부 가능)" rows="2"></textarea>
+            <button class="btn btn-red" id="chat-send-btn" onclick="sendChat()" style="align-self:flex-end">전송</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="subview" id="a-settings">
+      <div class="page-header">
+        <div class="page-title">설정</div>
+      </div>
+      <div class="settings-section">
+        <h3>Google Sheets 연동</h3>
+        <div class="settings-row">
+          <label class="label">Apps Script 웹앱 URL</label>
+          <div class="api-key-row">
+            <input class="input" id="sheets-url" placeholder="https://script.google.com/macros/s/…/exec">
+            <button class="btn btn-ghost btn-sm" onclick="saveSettings()">저장</button>
+          </div>
+          <div class="settings-desc">
+            Google Apps Script를 만들어 POST 요청을 받는 웹앱으로 배포하세요.<br>
+            코드: <code style="background:var(--elevated);padding:2px 6px;border-radius:4px;font-size:11px">doPost(e) → SpreadsheetApp.openById(…).appendRow(…)</code>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>비밀번호 변경</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="settings-row">
+            <label class="label">김유찬 비밀번호</label>
+            <div class="api-key-row">
+              <input class="input" id="pw-yuchan" type="password" placeholder="새 비밀번호">
+              <button class="btn btn-ghost btn-sm" onclick="savePw('yuchan')">저장</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label class="label">한승우 비밀번호</label>
+            <div class="api-key-row">
+              <input class="input" id="pw-seungwoo" type="password" placeholder="새 비밀번호">
+              <button class="btn btn-ghost btn-sm" onclick="savePw('seungwoo')">저장</button>
+            </div>
+          </div>
+        </div>
+        <div class="settings-desc">관리자 비밀번호는 소스코드에서 변경 가능합니다.</div>
+      </div>
+      <div class="settings-section">
+        <h3>코치 프로필 / 병력 정보</h3>
+        <div class="settings-desc" style="margin-bottom:14px">과거 병력, 수술 이력, 신체 정보, 주의사항 등 — AI 채팅에 항상 자동으로 포함됩니다.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="settings-row">
+            <label class="label">김유찬 코치님</label>
+            <textarea class="input" id="profile-yuchan" rows="7"
+              placeholder="예) 나이: 28세&#10;진단: 요추 4-5번 협착증&#10;수술 이력: 없음&#10;주의: 전방 굴곡 제한&#10;..."></textarea>
+            <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="saveProfile('yuchan')">저장</button>
+          </div>
+          <div class="settings-row">
+            <label class="label">한승우 코치님</label>
+            <textarea class="input" id="profile-seungwoo" rows="7"
+              placeholder="예) 나이: 32세&#10;진단: 고관절 충돌 증후군&#10;수술 이력: 없음&#10;주의: 깊은 스쿼트 금지&#10;..."></textarea>
+            <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="saveProfile('seungwoo')">저장</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>재활 참고자료</h3>
+        <div class="settings-desc" style="margin-bottom:14px">재활 프로토콜, 치료 원칙, 주요 지침 등 — AI 채팅 시 항상 자동으로 참고합니다.</div>
+        <textarea class="input" id="rehab-ref-text" rows="8"
+          placeholder="예)&#10;## 재활 원칙&#10;- 통증 없는 범위 내에서만 운동&#10;- 염증기(초기 2주): 스트레칭 위주, 근력 운동 최소화&#10;- 아급성기: 점진적 부하 증가&#10;&#10;## 협착증 주의사항&#10;- 신전 동작 선호, 굴곡 제한&#10;- 코어 안정화 우선&#10;&#10;## 고관절 충돌 주의사항&#10;- 깊은 스쿼트, 극단적 굴곡 금지"></textarea>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="saveRehabRef()">저장</button>
+      </div>
+    </section>
+
+  </main>
 </div>
 
-<!-- ═══ BRANCH SHELL ═══ -->
-<div id="page-branch" class="shell hidden">
-  <div class="sidebar">
-    <div class="sb-brand">
-      <div class="sb-logo"><em>G</em>BOXING 관리 포털</div>
-      <div class="sb-meta">
-        <div class="sb-av av-br" id="br-av">주</div>
-        <div><div class="sb-uname" id="br-name">주엽점</div></div>
+<!-- ════════════════════════════════════════════════════
+     USER
+═══════════════════════════════════════════════════════ -->
+<div id="v-user" class="view hidden">
+  <header class="user-header">
+    <div>
+      <div class="user-header-name" id="u-name"></div>
+      <div class="user-header-cond" id="u-cond"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">로그아웃</button>
+  </header>
+
+  <div class="user-content">
+
+    <!-- HOME -->
+    <div class="user-subview active" id="u-home">
+      <div class="countdown-block">
+        <div id="cd-number"></div>
+        <div class="countdown-label" id="cd-label"></div>
+        <div class="countdown-date" id="cd-date"></div>
       </div>
-    </div>
-    <div class="nav-grp">메뉴</div>
-    <div class="ni act" onclick="brGo('input')" id="bn-input"><span class="ni-ic">✏️</span>상담 입력</div>
-    <div class="ni" onclick="brGo('fu')" id="bn-fu"><span class="ni-ic">🔔</span>팔로업 목록<span class="ni-badge" id="br-fu-badge">0</span></div>
-    <div class="sb-foot"><button class="logout-btn" onclick="logout()">← 로그아웃</button></div>
-  </div>
-  <div class="main">
-    <div class="topbar">
-      <span class="tb-title" id="br-page-title">지점 현황</span>
-      <span class="rtag rt-br" id="br-top-badge">주엽점</span>
-    </div>
-    <div class="content">
-
-      <!-- BRANCH: INPUT -->
-      <div id="bv-input" class="view on">
-        <div class="card">
-          <div class="card-hd"><span class="card-t">상담 유형 선택</span></div>
-          <div class="survey-type">
-            <div class="type-btn on" onclick="setType('new',this)">🆕 신규 상담</div>
-            <div class="type-btn" onclick="setType('renew',this)">🔄 재등록 상담</div>
+      <!-- Pain trend chart -->
+      <div id="pain-trend-wrap" style="display:none;margin:16px 0 4px">
+        <div class="section-title">통증 추이 (최근 7일)</div>
+        <div class="card" style="padding:14px 10px 8px">
+          <svg id="pain-trend-svg" width="100%" height="110" style="display:block"></svg>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:6px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+              <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="4 2"/></svg>
+              아침
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+              <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="#e02d3c" stroke-width="2"/></svg>
+              저녁
+            </div>
           </div>
-
-          <!-- 신규 서베이 -->
-          <div id="sec-new">
-            <div class="sec-lbl">① 기본 정보</div>
-            <div class="fg2" style="margin-bottom:20px;">
-              <div class="fg"><label>상담 날짜</label><input type="date" class="fi"></div>
-              <div class="fg"><label>담당자</label><input type="text" class="fi" id="br-coach-f" placeholder="담당자 이름 입력"></div>
-              <div class="fg"><label>이름</label><input type="text" class="fi" placeholder="홍길동"></div>
-              <div class="fg"><label>성별</label><select class="fi"><option>선택</option><option>남성</option><option>여성</option></select></div>
-              <div class="fg"><label>생년월일</label><input type="date" class="fi"></div>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">② 방문 경로</div>
-            <div class="chk-grp" style="margin-bottom:6px;">
-              <label class="chk-i"><input type="checkbox" name="path" onchange="toggleOther(this,'path-naver')">네이버 검색</label>
-              <label class="chk-i"><input type="checkbox" name="path">유튜브</label>
-              <label class="chk-i"><input type="checkbox" name="path">인스타그램</label>
-              <label class="chk-i"><input type="checkbox" name="path">지인 소개</label>
-              <label class="chk-i"><input type="checkbox" name="path">간판</label>
-              <label class="chk-i"><input type="checkbox" name="path" onchange="toggleOther(this,'path-etc')">기타</label>
-            </div>
-            <div id="path-naver" class="other-input"><input type="text" class="fi" placeholder="네이버 검색어 입력"></div>
-            <div id="path-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 경로 입력"></div>
-
-            <div class="sec-lbl" style="margin-top:20px;">③ 운동 경력</div>
-            <div style="margin-bottom:20px;">
-              <textarea class="fi" style="height:72px;" placeholder="예) 헬스 2년, 수영 6개월 경험 있음. 복싱은 처음."></textarea>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">④ 운동 목적</div>
-            <div class="chk-grp" style="margin-bottom:20px;">
-              <label class="chk-i"><input type="checkbox">다이어트/체중감량</label>
-              <label class="chk-i"><input type="checkbox">체력 증진</label>
-              <label class="chk-i"><input type="checkbox">스트레스 해소</label>
-              <label class="chk-i"><input type="checkbox">새로운 도전/취미</label>
-              <label class="chk-i"><input type="checkbox">건강 관리</label>
-              <label class="chk-i"><input type="checkbox">선수 준비</label>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">⑤ 등록 망설이는 이유</div>
-            <div class="chk-grp" style="margin-bottom:6px;">
-              <label class="chk-i"><input type="checkbox">가격</label>
-              <label class="chk-i"><input type="checkbox">거리</label>
-              <label class="chk-i"><input type="checkbox">무서울 것 같아서</label>
-              <label class="chk-i"><input type="checkbox">운동 경험 없음</label>
-              <label class="chk-i"><input type="checkbox">시간</label>
-              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'hesit-etc')">기타</label>
-            </div>
-            <div id="hesit-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 이유 입력"></div>
-
-            <div class="sec-lbl" style="margin-top:20px;">⑥ G복싱을 찾아온 이유</div>
-            <div class="chk-grp" style="margin-bottom:6px;">
-              <label class="chk-i"><input type="checkbox">관장님</label>
-              <label class="chk-i"><input type="checkbox">코치진</label>
-              <label class="chk-i"><input type="checkbox">분위기</label>
-              <label class="chk-i"><input type="checkbox">시설</label>
-              <label class="chk-i"><input type="checkbox">가격</label>
-              <label class="chk-i"><input type="checkbox">프로그램</label>
-              <label class="chk-i"><input type="checkbox">후기</label>
-              <label class="chk-i"><input type="checkbox">위치</label>
-              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'reason-etc')">기타</label>
-            </div>
-            <div id="reason-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 이유 입력"></div>
-
-            <div class="sec-lbl" style="margin-top:20px;">⑦ 운동 가능 일정</div>
-            <div class="fg2" style="margin-bottom:20px;">
-              <div class="fg"><label>월 운동 가능 횟수</label>
-                <div class="radio-grp" style="margin-top:8px;">
-                  <label class="radio-i"><input type="radio" name="freq">주 1~3회</label>
-                  <label class="radio-i"><input type="radio" name="freq">주 3회 이상</label>
-                  <label class="radio-i"><input type="radio" name="freq">아직 모르겠다</label>
-                </div>
-              </div>
-              <div class="fg"><label>운동 가능 시간대</label>
-                <div class="radio-grp" style="margin-top:8px;flex-wrap:wrap;">
-                  <label class="radio-i"><input type="radio" name="time">오전</label>
-                  <label class="radio-i"><input type="radio" name="time">오후</label>
-                  <label class="radio-i"><input type="radio" name="time">저녁</label>
-                  <label class="radio-i"><input type="radio" name="time">상관없음</label>
-                  <label class="radio-i"><input type="radio" name="time">아직 모르겠다</label>
-                </div>
-              </div>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">⑧ 상담 결과</div>
-            <div class="fg2" style="margin-bottom:10px;">
-              <div class="fg"><label>전환 여부</label><select class="fi" id="result-sel" onchange="toggleConvert(this.value)"><option value="">선택</option><option value="등록 완료">등록 완료</option><option value="팔로업 필요">팔로업 필요</option><option value="미전환">미전환</option></select></div>
-              <div class="fg" id="convert-pass-wrap" style="display:none;"><label>전환 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
-            </div>
-            <div class="fg" id="no-convert-wrap" style="display:none;margin-bottom:10px;"><label>비전환 / 팔로업 사유</label><input type="text" class="fi" placeholder="사유 입력 (예: 가격 고민 중, 일정 조율 필요 등)"></div>
-            <div class="fg full" style="margin-bottom:4px;margin-top:16px;"><label>기타 메모</label><textarea class="fi" placeholder="특이사항, 추가 관찰 내용 등 자유 기록"></textarea></div>
-          </div>
-
-          <!-- 재등록 서베이 -->
-          <div id="sec-renew" class="hidden">
-            <div class="sec-lbl">① 기본 정보</div>
-            <div class="fg2" style="margin-bottom:20px;">
-              <div class="fg"><label>상담 날짜</label><input type="date" class="fi"></div>
-              <div class="fg"><label>담당자</label><input type="text" class="fi" id="br-coach-r" placeholder="담당자 이름 입력"></div>
-              <div class="fg"><label>이름</label><input type="text" class="fi" placeholder="홍길동"></div>
-              <div class="fg"><label>성별</label><select class="fi"><option>선택</option><option>남성</option><option>여성</option></select></div>
-              <div class="fg"><label>생년월일</label><input type="date" class="fi"></div>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">② 연장 회원권</div>
-            <div class="fg2" style="margin-bottom:20px;">
-              <div class="fg"><label>기존 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
-              <div class="fg"><label>연장 회원권</label><select class="fi"><option>1개월권</option><option>2~3개월권</option><option>6개월권 이상</option><option>PT</option></select></div>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">③ G복싱에서 가장 만족한 것</div>
-            <div class="chk-grp" style="margin-bottom:6px;">
-              <label class="chk-i"><input type="checkbox">운동 효과</label>
-              <label class="chk-i"><input type="checkbox">체력 향상</label>
-              <label class="chk-i"><input type="checkbox">체중 감량</label>
-              <label class="chk-i"><input type="checkbox">재미</label>
-              <label class="chk-i"><input type="checkbox">스트레스 해소</label>
-              <label class="chk-i"><input type="checkbox">사람들</label>
-              <label class="chk-i"><input type="checkbox">코치진</label>
-              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'sat-etc')">기타</label>
-            </div>
-            <div id="sat-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 내용 입력"></div>
-
-            <div class="sec-lbl" style="margin-top:20px;">④ 다음 운동 목적</div>
-            <div class="chk-grp" style="margin-bottom:20px;">
-              <label class="chk-i"><input type="checkbox">체중 감량</label>
-              <label class="chk-i"><input type="checkbox">꾸준한 운동 루틴</label>
-              <label class="chk-i"><input type="checkbox">체력 증진</label>
-              <label class="chk-i"><input type="checkbox">실전 기술</label>
-              <label class="chk-i"><input type="checkbox">기타</label>
-            </div>
-
-            <div class="sec-lbl" style="margin-top:20px;">⑤ 앞으로 바라는 점</div>
-            <div class="chk-grp" style="margin-bottom:6px;">
-              <label class="chk-i"><input type="checkbox">복싱 기술 세부 코칭</label>
-              <label class="chk-i"><input type="checkbox">다양한 운동 와드</label>
-              <label class="chk-i"><input type="checkbox">스파링 및 실전 기술</label>
-              <label class="chk-i"><input type="checkbox">생활습관 관련 조언</label>
-              <label class="chk-i"><input type="checkbox">식단 관련 조언</label>
-              <label class="chk-i"><input type="checkbox" onchange="toggleOther(this,'wish-etc')">기타</label>
-            </div>
-            <div id="wish-etc" class="other-input" style="margin-bottom:20px;"><input type="text" class="fi" placeholder="기타 내용 입력"></div>
-
-            <div class="fg full" style="margin-bottom:4px;margin-top:4px;"><label>관리자 기타 메모</label><textarea class="fi" placeholder="추가 관찰, 특이사항 등 자유 기록"></textarea></div>
-          </div>
-
-          <div class="btn-row"><button class="btn">초기화</button><button class="btn btn-p" onclick="saveConsult()">저장 & 제출</button></div>
         </div>
       </div>
-
-      <!-- BRANCH: FOLLOWUP -->
-      <div id="bv-fu" class="view">
-        <div class="kg3">
-          <div class="kpi"><div class="kpi-l">팔로업 대기</div><div class="kpi-v dn" id="fu-cnt">3건</div><div class="kpi-s nt">미등록 추적</div></div>
-          <div class="kpi"><div class="kpi-l">긴급 (7일↑)</div><div class="kpi-v" id="fu-urg">1건</div><div class="kpi-s dn">즉시 연락</div></div>
-          <div class="kpi"><div class="kpi-l">이번 주 목표</div><div class="kpi-v">2명</div><div class="kpi-s up">1명 달성</div></div>
-        </div>
-        <div class="fu-wrap" id="br-fu"></div>
-      </div>
-
+      <div class="section-title" id="today-title">오늘의 운동</div>
+      <div id="today-exercises"></div>
     </div>
+
+    <!-- SCHEDULE -->
+    <div class="user-subview" id="u-schedule">
+      <div class="page-header">
+        <div class="page-title bebas" style="font-size:26px">운동 스케쥴</div>
+        <div class="page-desc text-sm">운동일: 월 · 수 · 금 · 토 &nbsp;|&nbsp; 매회 동일 루틴</div>
+      </div>
+      <div id="u-sched-list"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="user-subview" id="u-log">
+      <div class="page-header">
+        <div class="page-title bebas" style="font-size:26px">오늘 기록</div>
+        <div class="page-desc text-sm" id="u-log-date"></div>
+      </div>
+      <div class="log-section">
+        <div class="label">수면 시간</div>
+        <div class="sleep-row">
+          <button class="sleep-btn" onclick="adjSleep(-0.5)">−</button>
+          <div class="sleep-val" id="sleep-val">7.0</div>
+          <span class="text-muted" style="font-size:13px">시간</span>
+          <button class="sleep-btn" onclick="adjSleep(0.5)">+</button>
+        </div>
+      </div>
+      <div class="log-section">
+        <label class="label" for="log-food">식사 내용</label>
+        <textarea class="input" id="log-food" placeholder="아침 / 점심 / 저녁 간단하게"></textarea>
+      </div>
+      <div class="log-section">
+        <label class="label" for="log-exercise">오늘 한 운동</label>
+        <textarea class="input" id="log-exercise" placeholder="체크한 운동이 자동으로 채워집니다"></textarea>
+      </div>
+      <div class="log-section">
+        <label class="label" for="log-notes">특이사항</label>
+        <textarea class="input" id="log-notes" placeholder="통증 변화, 컨디션, 주의사항 등"></textarea>
+      </div>
+      <div class="log-section">
+        <div class="label">아침 통증 (0=없음, 10=심함)</div>
+        <div class="pain-scale" id="pain-morning"></div>
+      </div>
+      <div class="log-section">
+        <div class="label">저녁 통증</div>
+        <div class="pain-scale" id="pain-evening"></div>
+      </div>
+      <button class="btn btn-red btn-full" style="margin-top:8px" onclick="submitLog()" id="log-submit-btn">기록 전송하기</button>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center" id="log-status"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="user-subview" id="u-history">
+      <div class="page-header">
+        <div class="page-title bebas" style="font-size:26px">기록 히스토리</div>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- MY INFO -->
+    <div class="user-subview" id="u-myinfo">
+      <div class="page-header">
+        <div class="page-title bebas" style="font-size:26px">내 정보</div>
+        <div class="page-desc text-sm">입력한 정보는 AI 상담에 자동으로 활용됩니다</div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">기저질환 · 부상 이력 · 신체 정보</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+          현재 진단명, 과거 수술/부상 이력, 통증 부위, 주의해야 할 동작 등을 적어주세요.<br>
+          AI가 운동 조언 시 자동으로 참고합니다.
+        </div>
+        <textarea class="input" id="myinfo-text" rows="10"
+          placeholder="예)&#10;나이: 28세&#10;진단: 요추 4-5번 협착증&#10;수술 이력: 없음&#10;주요 증상: 앉아있다 일어날 때 허리 통증&#10;주의 동작: 전방 굴곡 제한, 무거운 스쿼트 금지&#10;기타: 고혈압약 복용 중"></textarea>
+        <button class="btn btn-red btn-full" style="margin-top:12px" onclick="saveMyInfo()">저장</button>
+      </div>
+      <div class="card" style="background:var(--elevated);border-color:var(--faint)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">
+          💡 저장된 정보는 관리자와 AI만 볼 수 있으며,<br>운동 프로그램 개선에 활용됩니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- AI CHAT -->
+    <div class="user-subview" id="u-chat">
+      <div class="page-header">
+        <div class="page-title bebas" style="font-size:26px">AI 상담</div>
+        <div class="page-desc text-sm">재활 운동 질문 · 통증 관리 조언</div>
+      </div>
+      <div class="coach-chat-wrap">
+        <div class="coach-chat-msgs" id="coach-chat-messages">
+          <div class="msg msg-system">운동, 재활에 대해 질문하세요.<br>예: "오늘 버드독 할 때 허리가 당기는데 어떻게 해야 하나요?"</div>
+        </div>
+        <div>
+          <div id="coach-attach-preview" class="attach-preview"></div>
+          <div class="coach-chat-row">
+            <label class="attach-btn" title="사진/영상 첨부">
+              <input type="file" id="coach-file-input" accept="image/*,video/*" multiple style="display:none" onchange="handleAttach(this,'coach')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </label>
+            <textarea class="input" id="coach-chat-input" placeholder="메시지 입력… (사진/영상 첨부 가능)" rows="2"></textarea>
+            <button class="btn btn-red" id="coach-send-btn" onclick="sendCoachChat()" style="align-self:flex-end">전송</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <nav class="user-nav" id="user-nav">
+    <button class="user-nav-btn active" data-uv="u-home" onclick="userNav(this)">홈</button>
+    <button class="user-nav-btn" data-uv="u-schedule" onclick="userNav(this)">스케쥴</button>
+    <button class="user-nav-btn" data-uv="u-log" onclick="userNav(this)">기록</button>
+    <button class="user-nav-btn" data-uv="u-history" onclick="userNav(this)">히스토리</button>
+    <button class="user-nav-btn" data-uv="u-myinfo" onclick="userNav(this)">내 정보</button>
+    <button class="user-nav-btn" data-uv="u-chat" onclick="userNav(this)">AI</button>
+  </nav>
 </div>
 
 <script>
-const ACCTS={
-  'Gboxinghq':{pw:'0530',role:'hq'},
-  'gboxingjy':{pw:'1234',role:'br',name:'주엽점',av:'주',total:342,male:198,female:144,renew:78,mp:58,key:'jy'},
-  'gboxinghj':{pw:'1234',role:'br',name:'화정점',av:'화',total:318,male:181,female:137,renew:61,mp:57,key:'hj'},
-  'gboxingyd':{pw:'1234',role:'br',name:'야당점',av:'야',total:291,male:175,female:116,renew:48,mp:60,key:'yd'},
-  'gboxinggr':{pw:'1234',role:'br',name:'구래점',av:'구',total:297,male:170,female:127,renew:68,mp:57,key:'gr'},
+/* ════════════════════════════════════════════════════
+   CONSTANTS & DEFAULTS
+═══════════════════════════════════════════════════════ */
+const START_DATE = '2026-09-11';
+const TOTAL_DAYS = 31;
+
+const USERS = {
+  admin:    { name:'관리자', pw:'admin1234' },
+  yuchan:   { name:'김유찬', days:['mon','wed','fri','sat'] },
+  seungwoo: { name:'한승우', days:['mon','wed','fri','sat'] }
 };
 
-const PASS_COLS=['#378ADD','#1D9E75','#D85A30','#7F77DD'];
-const BRANCH_DATA={
-  jy:{name:'주엽점',col:'#378ADD',total:342,male:198,female:144,renew:78,mp:58,
-    monthly:[298,310,318,325,328,332,335,338,340,341,342,342],
-    renews:[58,63,67,70,71,73,74,75,76,77,78,78],
-    pass:[{n:'1개월권',v:72},{n:'2~3개월권',v:138},{n:'6개월권 이상',v:89},{n:'PT',v:43}],
-    passMonthly:[
-      [58,61,63,65,66,67,68,69,70,71,71,72],
-      [110,115,118,121,124,127,129,131,133,135,137,138],
-      [72,75,77,79,81,82,83,84,86,87,88,89],
-      [35,37,38,39,40,41,41,42,42,43,43,43],
-    ],
-    purpose:[{n:'다이어트',v:38},{n:'체력',v:22},{n:'스트레스',v:17},{n:'취미',v:12},{n:'건강',v:8},{n:'선수',v:3}],
-    path:[{n:'네이버',v:35},{n:'인스타',v:28},{n:'지인',v:20},{n:'유튜브',v:10},{n:'간판',v:7}],
-    age:[{n:'20대',v:45},{n:'30대',v:32},{n:'40대',v:16},{n:'50대+',v:7}],
-    staff:[
-      {name:'김성민',consult:38,convert:17,renew:8},
-      {name:'이지현',consult:29,convert:11,renew:6},
-      {name:'박준호',consult:24,convert:7,renew:4},
-    ]},
-  hj:{name:'화정점',col:'#1D9E75',total:318,male:181,female:137,renew:61,mp:57,
-    monthly:[285,292,298,301,305,307,309,311,313,315,317,318],
-    renews:[45,49,51,52,54,55,56,57,58,59,60,61],
-    pass:[{n:'1개월권',v:65},{n:'2~3개월권',v:121},{n:'6개월권 이상',v:84},{n:'PT',v:48}],
-    passMonthly:[
-      [52,54,56,57,58,59,60,61,62,63,64,65],
-      [98,102,105,108,110,112,114,116,117,118,120,121],
-      [68,70,72,74,76,77,78,79,80,81,83,84],
-      [38,40,41,42,43,44,44,45,46,47,47,48],
-    ],
-    purpose:[{n:'다이어트',v:42},{n:'체력',v:19},{n:'스트레스',v:15},{n:'취미',v:14},{n:'건강',v:7},{n:'선수',v:3}],
-    path:[{n:'네이버',v:40},{n:'지인',v:24},{n:'인스타',v:18},{n:'간판',v:12},{n:'유튜브',v:6}],
-    age:[{n:'20대',v:38},{n:'30대',v:35},{n:'40대',v:20},{n:'50대+',v:7}],
-    staff:[
-      {name:'최유나',consult:34,convert:15,renew:7},
-      {name:'정도현',consult:28,convert:9,renew:5},
-    ]},
-  yd:{name:'야당점',col:'#D85A30',total:291,male:175,female:116,renew:48,mp:60,
-    monthly:[305,299,296,295,295,294,294,293,292,292,291,291],
-    renews:[52,50,50,49,49,48,48,48,48,48,48,48],
-    pass:[{n:'1개월권',v:80},{n:'2~3개월권',v:118},{n:'6개월권 이상',v:65},{n:'PT',v:28}],
-    passMonthly:[
-      [85,84,83,82,82,81,81,80,80,80,80,80],
-      [122,121,120,119,119,118,118,118,118,118,118,118],
-      [68,67,66,66,66,65,65,65,65,65,65,65],
-      [30,29,29,28,28,28,28,28,28,28,28,28],
-    ],
-    purpose:[{n:'다이어트',v:35},{n:'체력',v:28},{n:'스트레스',v:18},{n:'취미',v:10},{n:'건강',v:7},{n:'선수',v:2}],
-    path:[{n:'지인',v:38},{n:'네이버',v:28},{n:'간판',v:18},{n:'인스타',v:12},{n:'유튜브',v:4}],
-    age:[{n:'20대',v:30},{n:'30대',v:38},{n:'40대',v:22},{n:'50대+',v:10}],
-    staff:[
-      {name:'한민수',consult:31,convert:10,renew:5},
-      {name:'오서진',consult:22,convert:6,renew:3},
-    ]},
-  gr:{name:'구래점',col:'#7F77DD',total:297,male:170,female:127,renew:68,mp:57,
-    monthly:[238,251,258,263,268,272,276,281,285,289,293,297],
-    renews:[38,44,48,51,54,57,59,61,63,65,67,68],
-    pass:[{n:'1개월권',v:67},{n:'2~3개월권',v:135},{n:'6개월권 이상',v:80},{n:'PT',v:15}],
-    passMonthly:[
-      [48,51,53,55,57,58,60,61,63,64,66,67],
-      [95,101,106,110,114,117,120,123,126,129,132,135],
-      [58,62,65,68,70,72,73,75,76,77,79,80],
-      [8,9,10,11,12,12,13,13,13,14,14,15],
-    ],
-    purpose:[{n:'다이어트',v:44},{n:'체력',v:20},{n:'스트레스',v:14},{n:'취미',v:13},{n:'건강',v:7},{n:'선수',v:2}],
-    path:[{n:'인스타',v:42},{n:'네이버',v:25},{n:'유튜브',v:18},{n:'지인',v:10},{n:'간판',v:5}],
-    age:[{n:'20대',v:52},{n:'30대',v:28},{n:'40대',v:14},{n:'50대+',v:6}],
-    staff:[
-      {name:'윤재호',consult:41,convert:19,renew:9},
-      {name:'강미래',consult:33,convert:13,renew:7},
-      {name:'임지수',consult:18,convert:5,renew:2},
-    ]},
+const DEFAULT_SCHEDULES = {
+  yuchan: [
+    {id:'y1',cat:'스트레칭',name:'복와위 팔꿈치 지지 (Prone on Elbows)',sets:'3분 유지',note:'통증 없이 편한 자세, 허리 힘 빼기'},
+    {id:'y2',cat:'스트레칭',name:'맥켄지 신전 (McKenzie Extension)',sets:'10회 × 3세트',note:'팔로만 밀고 허리 근육 사용 최소화'},
+    {id:'y3',cat:'스트레칭',name:'무릎-가슴 스트레칭 (Knee to Chest)',sets:'30초 × 각 3회',note:'굴곡 가능한 범위 내에서만, 무리 금지'},
+    {id:'y4',cat:'스트레칭',name:'장요근 스트레칭 (Hip Flexor Lunge)',sets:'45초 × 각 3회',note:'전방 허벅지 앞쪽 당기는 느낌'},
+    {id:'y5',cat:'근력',name:'버드독 (Bird Dog)',sets:'10회(각측) × 3세트',note:'척추 중립 유지, 허리 회전 절대 금지'},
+    {id:'y6',cat:'근력',name:'사이드 플랭크 (Side Plank)',sets:'20초 × 3세트 (양측)',note:'무릎 굽혀서 시작 가능, 골반 처지지 않게'},
+    {id:'y7',cat:'근력',name:'클램쉘 (Clamshell)',sets:'15회 × 3세트 (양측)',note:'골반 뒤로 굴리지 말고 고관절만 열기'},
+    {id:'y8',cat:'근력',name:'힙 힌지 연습 (Hip Hinge)',sets:'15회 × 3세트',note:'막대기 등에 대고 연습, 허리 구부리지 않기'}
+  ],
+  seungwoo: [
+    {id:'s1',cat:'스트레칭',name:'장요근 스트레칭 (Kneeling Hip Flexor)',sets:'45초 × 각 3회',note:'골반 전방 경사 없이, 복부 살짝 당기기'},
+    {id:'s2',cat:'스트레칭',name:'이상근 스트레칭 (Figure-4 / 비둘기 자세)',sets:'30초 × 각 3회',note:'누워서 4자 만들기, 엉덩이 깊은 곳 늘리기'},
+    {id:'s3',cat:'스트레칭',name:'햄스트링 스트레칭',sets:'30초 × 각 3회',note:'허리 말리지 말고 골반부터 앞으로'},
+    {id:'s4',cat:'스트레칭',name:'흉추 회전 (Thoracic Rotation)',sets:'10회 × 3세트 (양측)',note:'누워서 무릎 세우고 돌리기, 허리는 최소'},
+    {id:'s5',cat:'근력',name:'글루트 브릿지 (Glute Bridge)',sets:'15회 × 3세트',note:'허리로 올리지 말고 엉덩이로, 상단 2초 유지'},
+    {id:'s6',cat:'근력',name:'데드버그 (Dead Bug)',sets:'10회 × 3세트',note:'허리 바닥에 붙이고 천천히, 허리 뜨면 멈추기'},
+    {id:'s7',cat:'근력',name:'사이드라잉 힙 어브덕션',sets:'15회 × 3세트 (양측)',note:'발끝 살짝 앞으로, 골반 흔들지 않기'},
+    {id:'s8',cat:'근력',name:'폼롤러 고관절 가동화',sets:'각 부위 2분',note:'TFL · 장경인대 · 둔근 롤링'}
+  ]
 };
 
-const MONTHS12=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const PROXY_URL='https://script.google.com/macros/s/AKfycbzjIs3BixjFFRFDWIUJNtkD3wM2zQiTgRwnBt3dmTSdRVtRPFqQv2A5zvqFR9h1doL40g/exec';
+/* ════════════════════════════════════════════════════
+   WEEK HELPERS
+═══════════════════════════════════════════════════════ */
+const KOR_DAYS  = ['월','화','수','목','금','토','일'];
+const KOR_DAYS_FULL = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+const DAY_KEY   = ['sun','mon','tue','wed','thu','fri','sat'];
 
-let currentUser=null;
-let fuData=[];
-let LIVE={hq:null, branches:{}};
-
-/* ── Sheets fetch (Apps Script 프록시) ── */
-async function fetchSheet(sheetName){
-  try{
-    const url=PROXY_URL+'?sheet='+encodeURIComponent(sheetName);
-    console.log('fetchSheet:',sheetName);
-    const res=await fetch(url);
-    const json=await res.json();
-    if(json.status!=='ok'||!json.data){console.error('fetchSheet failed:',sheetName,json);return null;}
-    const rows=json.data;
-    if(!rows.length)return{cols:[],rows:[]};
-    const cols=Object.keys(rows[0]);
-    const rowArr=rows.map(r=>cols.map(c=>r[c]!=null?String(r[c]).trim():''));
-    console.log(`[${sheetName}] cols:`,cols,'rows:',rowArr.length);
-    return{cols,rows:rowArr};
-  }catch(e){console.error('fetchSheet error:',sheetName,e);return null;}
-}
-
-function rowToObj(cols,row){
-  const obj={};
-  cols.forEach((c,i)=>obj[c]=row[i]||'');
-  return obj;
-}
-
-/* ── 회원현황에서 지점별 최신 데이터 추출 ── */
-function parseMemberData(data){
-  if(!data)return{};
-  const {cols,rows}=data;
-  const result={};
-  const branchMap={'주엽점':'jy','화정점':'hj','야당점':'yd','구래점':'gr'};
-
-  // 월별로 그룹핑
-  const byBranch={jy:[],hj:[],yd:[],gr:[]};
-  rows.forEach(row=>{
-    const obj=rowToObj(cols,row);
-    const bk=branchMap[obj['지점']];
-    if(!bk)return;
-    byBranch[bk].push(obj);
+function getWeekDates() {
+  // Use KST (UTC+9) for date calculations
+  const todayKST = new Date(Date.now() + 9*60*60*1000);
+  const dow = todayKST.getUTCDay();
+  const monday = new Date(todayKST);
+  monday.setUTCDate(todayKST.getUTCDate() - ((dow + 6) % 7));
+  return Array.from({length:7}, (_, i) => {
+    const d = new Date(monday);
+    d.setUTCDate(monday.getUTCDate() + i);
+    return d.toISOString().slice(0,10);
   });
+}
 
-  Object.entries(byBranch).forEach(([bk,brows])=>{
-    if(!brows.length)return;
-    // 날짜 정렬
-    brows.sort((a,b)=>a['날짜']>b['날짜']?1:-1);
-    const latest=brows[brows.length-1];
+function getDoneListForDate(uid, date) {
+  return checks[`${uid}-${date}`] || [];
+}
 
-    // 오늘부터 12개월 전까지 필터
-    const today=new Date();
-    const cutoff=new Date(today.getFullYear()-1, today.getMonth(), 1);
-    const last12=brows.filter(r=>{
-      const d=new Date(r['날짜']);
-      return !isNaN(d) && d>=cutoff;
+function painClass(v) { return v>=7?'text-red':v>=4?'text-amber':'text-green'; }
+function painWkClass(v) { return v>=7?'p-hi':v>=4?'p-mi':'p-lo'; }
+
+function buildRecentRecordsContext(uids) {
+  return uids.map(uid => {
+    const u = USERS[uid];
+    const recs = (records[uid]||[]).slice(0,7);
+    if (!recs.length) return `${u.name} 코치님: 최근 기록 없음`;
+    const lines = recs.map(r => {
+      const done = getDoneListForDate(uid, r.date);
+      return `  ${r.date}: 아침통증 ${r.painMorning}/10, 저녁통증 ${r.painEvening}/10, 수면 ${r.sleep}h, 운동완료 ${done.length}/${schedules[uid].length}개${r.notes?`, 메모: ${r.notes}`:''}`;
     });
-    // 최소 1개는 있어야 하므로 없으면 마지막 12개 사용
-    const target=last12.length>0?last12:brows.slice(-12);
+    return `${u.name} 코치님 최근 기록:\n${lines.join('\n')}`;
+  }).join('\n\n');
+}
 
-    const monthly=target.map(r=>parseInt(r['총유효'])||0);
-    const renews=target.map(r=>parseInt(r['총재등록'])||0);
-    const passMonthly=[
-      target.map(r=>parseInt(r['1개월'])||0),
-      target.map(r=>parseInt(r['3개월'])||0),
-      target.map(r=>parseInt(r['6개월'])||0),
-      target.map(r=>parseInt(r['연회원'])||0),
-    ];
-    // 월 레이블 — 연도 변경 시 연도 표시
-    const monthLabels=target.map((r,i)=>{
-      const d=new Date(r['날짜']);
-      if(isNaN(d)) return r['날짜'];
-      const m=d.getMonth()+1;
-      const yr=d.getFullYear();
-      // 첫 번째이거나 연도가 바뀌면 연도 표시
-      const prevD=i>0?new Date(target[i-1]['날짜']):null;
-      const showYr=!prevD||isNaN(prevD)||prevD.getFullYear()!==yr;
-      return showYr?`${yr%100}/${m}월`:`${m}월`;
+/* ════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let db = null;
+let currentUser = null;
+let schedules = structuredClone(DEFAULT_SCHEDULES);
+let records = {};
+let checks = {};
+let chatHistory = [];
+let coachChatHistory = [];
+let adminSending = false;
+let coachSending = false;
+let profiles = { yuchan: '', seungwoo: '' }; // 코치 프로필/병력
+let rehabRef = ''; // 관리자 재활 참고자료
+let sleepVal = 7.0;
+let painMorning = 0;
+let painEvening = 0;
+
+/* passwords changeable via settings */
+let userPws = JSON.parse(localStorage.getItem('gb_pws') || '{"yuchan":"0000","seungwoo":"0000"}');
+
+/* ════════════════════════════════════════════════════
+   DB INIT
+═══════════════════════════════════════════════════════ */
+async function initDb() {
+  try {
+    db = await claude.use('db');
+    if (!db) return;
+    // Subscribe to schedule changes
+    db.doc('schedules/yuchan').onSnapshot(snap => {
+      if (snap.exists && snap.data().items) {
+        schedules.yuchan = snap.data().items;
+        if (currentUser === 'yuchan') renderUserSchedule();
+        if (currentUser === 'admin') renderAdminSched('yuchan');
+      }
+    }, () => {});
+    db.doc('schedules/seungwoo').onSnapshot(snap => {
+      if (snap.exists && snap.data().items) {
+        schedules.seungwoo = snap.data().items;
+        if (currentUser === 'seungwoo') renderUserSchedule();
+        if (currentUser === 'admin') renderAdminSched('seungwoo');
+      }
+    }, () => {});
+    // Load records
+    const today = todayStr();
+    ['yuchan','seungwoo'].forEach(uid => {
+      db.collection('records').where('user','==',uid).orderBy('date','desc').limit(30)
+        .onSnapshot(snap => {
+          records[uid] = snap.docs.map(d => ({id:d.id, ...d.data()}));
+          if (currentUser === 'admin') { renderAdminDashboard(); renderAdminRecords(uid); }
+          if (currentUser === uid) { renderHistory(); renderPainTrend(); }
+        }, () => {});
     });
-    const total=parseInt(latest['총유효'])||0;
-    const male=parseInt(latest['유효(남)'])||0;
-    const female=parseInt(latest['유효(여)'])||0;
-    const renew=parseInt(latest['총재등록'])||0;
-    const mp=total>0?Math.round(male/total*100):0;
-    const passLatest=[
-      {n:'1개월권',v:parseInt(latest['1개월'])||0},
-      {n:'2~3개월권',v:parseInt(latest['3개월'])||0},
-      {n:'6개월권 이상',v:parseInt(latest['6개월'])||0},
-      {n:'PT',v:parseInt(latest['PT기타'])||0},
-    ];
-    result[bk]={total,male,female,renew,mp,monthly,renews,passMonthly,pass:passLatest,monthLabels};
-  });
-  return result;
-}
-
-/* ── 키워드 그룹핑 ── */
-function normalizePurpose(s){
-  const t=s.toLowerCase().replace(/\s/g,'');
-  if(/다이어트|체중감량|감량|살/.test(t)) return '다이어트/체중감량';
-  if(/체력향상|체력증진|체력/.test(t)) return '체력 증진';
-  if(/스트레스|스트레/.test(t)) return '스트레스 해소';
-  if(/취미|새로운도전|새도전|즐거움|재미/.test(t)) return '취미/새로운 도전';
-  if(/건강|건강관리/.test(t)) return '건강 관리';
-  if(/선수|대회|격투|호신/.test(t)) return '선수/대회 준비';
-  if(/근육|증량|벌크/.test(t)) return '근육 증가';
-  return s.trim();
-}
-
-function normalizePath(s){
-  const t=s.toLowerCase().replace(/\s/g,'');
-  if(/네이버|검색|naver/.test(t)) return '네이버/검색';
-  if(/인스타|instagram|sns/.test(t)) return '인스타그램';
-  if(/유튜브|youtube/.test(t)) return '유튜브';
-  if(/지인|추천|소개|친구|가족/.test(t)) return '지인 추천';
-  if(/간판|현수막|전단/.test(t)) return '간판/오프라인';
-  if(/당근|블로그|카카오/.test(t)) return '기타 온라인';
-  if(/재등록|기존/.test(t)) return '기존 회원';
-  return s.trim();
-}
-
-function getBirthDecade(birth){
-  if(!birth||birth===''||birth==='null') return null;
-  const s = String(birth).trim();
-  if(!s) return null;
-
-  // 다양한 형식 처리: 2000-05-15, 2000/05/15, 20000515, 2000.05.15
-  let yr = null;
-  const m1 = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
-  if(m1) yr = parseInt(m1[1]);
-  else {
-    const m2 = s.match(/^(\d{4})/);
-    if(m2) yr = parseInt(m2[1]);
-  }
-
-  if(!yr) return null;
-  const thisYear = new Date().getFullYear();
-  // 유효 연도: 1950 ~ 올해-5
-  if(yr < 1950 || yr > thisYear - 5) return null;
-
-  const age = thisYear - yr;
-  if(age < 20) return '10대';
-  if(age < 30) return '20대';
-  if(age < 40) return '30대';
-  if(age < 50) return '40대';
-  return '50대+';
-}
-
-/* ── 신규상담에서 서베이 분포 + 팔로업 추출 ── */
-function parseSurveyData(data, branch){
-  if(!data)return{purpose:[],path:[],age:[],followup:[]};
-  const {cols,rows}=data;
-  const purposeCount={};
-  const pathCount={};
-  const ageCount={};
-  const followup=[];
-
-  rows.forEach(row=>{
-    const obj=rowToObj(cols,row);
-    if(branch && obj['지점']!==branch)return;
-
-    // 운동목적 — 그룹핑
-    const p=obj['운동목적']||'';
-    p.split(/[,\/、]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
-      const g=normalizePurpose(s);
-      purposeCount[g]=(purposeCount[g]||0)+1;
-    });
-
-    // 방문경로 — 그룹핑
-    const path=obj['방문경로']||'';
-    if(path){
-      const g=normalizePath(path);
-      pathCount[g]=(pathCount[g]||0)+1;
-    }
-
-    // 나이대 — 생년월일에서 추출
-    const decade=getBirthDecade(obj['생년월일']);
-    if(decade) ageCount[decade]=(ageCount[decade]||0)+1;
-
-    // 팔로업
-    const result=obj['전환여부']||'';
-    if(result==='미전환'||result==='팔로업 필요'){
-      const dateStr=obj['상담날짜']||'';
-      const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
-      followup.push({
-        name:obj['이름']||'',
-        days,
-        meta:`${obj['운동목적']||''} · ${obj['전환회원권']||obj['비전환사유']||''}`,
-        staff:obj['담당자']||'',
-        branch:obj['지점']||'',
-        date:dateStr,
-        reason:obj['비전환사유']||'',
+    // Subscribe to checks for the entire current week (both users)
+    getWeekDates().forEach(dateStr => {
+      ['yuchan','seungwoo'].forEach(uid => {
+        db.doc(`checks/${uid}-${dateStr}`).onSnapshot(snap => {
+          checks[`${uid}-${dateStr}`] = snap.exists ? (snap.data().done || []) : [];
+          if (currentUser === 'admin') renderAdminDashboard();
+          if (currentUser === uid && dateStr === today) renderTodayExercises();
+        }, () => {});
       });
-    }
-  });
-
-  const toArr=(obj,order)=>{
-    if(order){
-      return order.map(n=>({n,v:obj[n]||0})).filter(x=>x.v>0);
-    }
-    return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([n,v])=>({n,v}));
-  };
-  const ageOrder=['10대','20대','30대','40대','50대+'];
-  return{purpose:toArr(purposeCount), path:toArr(pathCount), age:toArr(ageCount,ageOrder), followup};
-}
-
-/* ── 담당자별 전환율 ── */
-function parseStaffData(data, branch){
-  if(!data)return[];
-  const {cols,rows}=data;
-  console.log('parseStaffData branch:',branch,'cols:',cols,'rows:',rows.length);
-  const staffMap={};
-  rows.forEach(row=>{
-    const obj=rowToObj(cols,row);
-    if(branch && obj['지점']!==branch)return;
-    const s=obj['담당자']||'';
-    if(!s)return;
-    if(!staffMap[s])staffMap[s]={name:s,consult:0,convert:0,renew:0};
-    staffMap[s].consult++;
-    if(obj['전환여부']==='등록 완료') staffMap[s].convert++;
-  });
-  console.log('parseStaffData result:',staffMap);
-  return Object.values(staffMap).filter(s=>s.consult>0);
-}
-
-function fill(id,pw){document.getElementById('inp-id').value=id;document.getElementById('inp-pw').value=pw;}
-
-async function doLogin(){
-  const id=document.getElementById('inp-id').value.trim();
-  const pw=document.getElementById('inp-pw').value.trim();
-  const a=ACCTS[id];
-  if(!a||a.pw!==pw){document.getElementById('lerr').style.display='block';return;}
-  document.getElementById('lerr').style.display='none';
-  currentUser=a;
-  document.getElementById('page-login').style.display='none';
-
-  // 로딩 표시
-  if(a.role==='hq'){
-    document.getElementById('page-hq').classList.remove('hidden');
-    await initHQ();
-  } else {
-    document.getElementById('br-av').textContent=a.av;
-    document.getElementById('br-name').textContent=a.name;
-    document.getElementById('br-top-badge').textContent=a.name;
-    document.getElementById('page-branch').classList.remove('hidden');
-    brGo('input');
-    await initBranch(a);
-  }
-}
-
-function showLoading(viewId, msg){
-  const el=document.getElementById(viewId);
-  if(el) el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--gray);font-size:13px;">⏳ ${msg}</div>`;
-}
-
-function logout(){
-  ['page-hq','page-branch'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  document.getElementById('page-login').style.display='flex';
-  document.getElementById('inp-id').value='';
-  document.getElementById('inp-pw').value='';
-  fuData=[];
-  LIVE={hq:null,branches:{}};
-}
-
-/* ── 지난 7일 요약 계산 ── */
-function calc7DaySummary(surveyData, renewData, branch){
-  const now = new Date();
-  const cutoff = new Date(now - 7*24*60*60*1000);
-  console.log('7일요약 branch:', branch, 'cutoff:', cutoff.toISOString());
-
-  const allNewRows = (surveyData?.rows||[]).map(row=>rowToObj(surveyData.cols, row));
-  const branchRows = allNewRows.filter(o=>o['지점']===branch);
-  console.log('지점 신규 전체:', branchRows.length, '샘플날짜:', branchRows.slice(0,3).map(o=>o['상담날짜']));
-
-  const newRows = branchRows.filter(obj=>{
-    const raw = obj['상담날짜'];
-    const d = new Date(raw);
-    const ok = !isNaN(d) && d>=cutoff;
-    return ok;
-  });
-  console.log('7일내 신규:', newRows.length);
-
-  const newTotal = newRows.length;
-  const newMale  = newRows.filter(o=>o['성별']==='남성').length;
-  const newFemale= newRows.filter(o=>o['성별']==='여성').length;
-  const newConvert = newRows.filter(o=>o['전환여부']==='등록 완료').length;
-  const newFU      = newRows.filter(o=>o['전환여부']==='팔로업 필요'||o['전환여부']==='미전환').length;
-
-  // 재등록상담 7일
-  const renewRows = (renewData?.rows||[])
-    .map(row=>rowToObj(renewData.cols, row))
-    .filter(obj=>{
-      if(obj['지점']!==branch) return false;
-      const d=new Date(obj['상담날짜']);
-      return !isNaN(d) && d>=cutoff;
     });
-
-  const renewTotal  = renewRows.length;
-  const renewMale   = renewRows.filter(o=>o['성별']==='남성').length;
-  const renewFemale = renewRows.filter(o=>o['성별']==='여성').length;
-  // 회원권별 집계
-  const passCount={};
-  renewRows.forEach(o=>{
-    const p=o['연장회원권']||'미기재';
-    passCount[p]=(passCount[p]||0)+1;
-  });
-
-  return {newTotal,newMale,newFemale,newConvert,newFU,renewTotal,renewMale,renewFemale,passCount};
-}
-
-/* ─── HQ ─── */
-const HQ_NAVS=['overview','jy','hj','yd','gr'];
-function hqGo(v){
-  HQ_NAVS.forEach(id=>{
-    const n=document.getElementById('hn-'+id);
-    if(n)n.classList.toggle('act',id===v);
-  });
-  if(v==='overview'){
-    document.getElementById('hv-overview').classList.add('on');
-    document.getElementById('hv-branch-detail').classList.remove('on');
-    document.getElementById('hq-title').textContent='전체 대시보드';
-  } else {
-    document.getElementById('hv-overview').classList.remove('on');
-    document.getElementById('hv-branch-detail').classList.add('on');
-    const bName={jy:'주엽점',hj:'화정점',yd:'야당점',gr:'구래점'}[v];
-    document.getElementById('hq-title').textContent=bName+' 대시보드';
-    const bd={...BRANCH_DATA[v],...(LIVE.branches[v]||{})};
-    console.log('hqGo:',bName,'LIVE.hq:',!!LIVE.hq,'survey rows:',LIVE.hq?.survey?.rows?.length);
-    if(LIVE.hq && LIVE.hq.survey){
-      const sv=parseSurveyData(LIVE.hq.survey, bName);
-      if(sv.purpose.length) bd.purpose=sv.purpose;
-      if(sv.path.length) bd.path=sv.path;
-      const staff=parseStaffData(LIVE.hq.survey, bName);
-      console.log('staff result for',bName,':',staff);
-      if(staff.length) bd.staff=staff;
-      // 7일 요약
-      bd.summary7 = calc7DaySummary(LIVE.hq.survey, LIVE.hq.renew, bName);
-    } else {
-      console.warn('LIVE.hq.survey 없음 — 샘플 데이터 사용');
+    // Subscribe to profiles
+    ['yuchan','seungwoo'].forEach(uid => {
+      db.doc(`profiles/${uid}`).onSnapshot(snap => {
+        if (snap.exists) {
+          profiles[uid] = snap.data().text || '';
+          // If coach is viewing their own info tab, refresh it
+          if (currentUser === uid) {
+            const el = document.getElementById('myinfo-text');
+            if (el) el.value = profiles[uid];
+          }
+          // If admin has settings open, refresh admin profile textarea
+          const adminEl = document.getElementById(`profile-${uid}`);
+          if (adminEl) adminEl.value = profiles[uid];
+        }
+      }, () => {});
+    });
+    // Subscribe to API key changes (so mobile picks up key set on desktop)
+    db.doc('settings/apiKeys').onSnapshot(snap => {
+      if (snap.exists) {
+        const d = snap.data();
+        if (d.openai)    lsSet('gb_ai_key_openai', d.openai);
+        if (d.anthropic) lsSet('gb_ai_key_anthropic', d.anthropic);
+        if (d.provider)  lsSet('gb_ai_provider', d.provider);
+      }
+    }, () => {});
+    // Subscribe to rehab reference material
+    db.doc('settings/rehabRef').onSnapshot(snap => {
+      if (snap.exists) {
+        rehabRef = snap.data().text || '';
+        const el = document.getElementById('rehab-ref-text');
+        if (el) el.value = rehabRef;
+      }
+    }, () => {});
+    // Seed schedules if not exist
+    const ysSnap = await db.doc('schedules/yuchan').get();
+    if (!ysSnap.exists) await db.doc('schedules/yuchan').set({items: schedules.yuchan});
+    const ssSnap = await db.doc('schedules/seungwoo').get();
+    if (!ssSnap.exists) await db.doc('schedules/seungwoo').set({items: schedules.seungwoo});
+    // Load profiles from DB
+    const ypSnap = await db.doc('profiles/yuchan').get();
+    if (ypSnap.exists) profiles.yuchan = ypSnap.data().text || '';
+    const spSnap = await db.doc('profiles/seungwoo').get();
+    if (spSnap.exists) profiles.seungwoo = spSnap.data().text || '';
+    // Load rehab reference material
+    const rrSnap = await db.doc('settings/rehabRef').get();
+    if (rrSnap.exists) rehabRef = rrSnap.data().text || '';
+    // Load API keys from DB (so all devices get the key set by admin)
+    const akSnap = await db.doc('settings/apiKeys').get();
+    if (akSnap.exists) {
+      const akData = akSnap.data();
+      if (akData.openai)    lsSet('gb_ai_key_openai', akData.openai);
+      if (akData.anthropic) lsSet('gb_ai_key_anthropic', akData.anthropic);
+      if (akData.provider)  lsSet('gb_ai_provider', akData.provider);
     }
-    renderBranchDetail(bd);
-  }
+  } catch(e) { console.warn('DB unavailable, using localStorage', e); }
+  // localStorage fallback for profiles
+  if (!profiles.yuchan) profiles.yuchan = lsGet('gb_profile_yuchan', '');
+  if (!profiles.seungwoo) profiles.seungwoo = lsGet('gb_profile_seungwoo', '');
+  if (!rehabRef) rehabRef = lsGet('gb_rehab_ref', '');
 }
 
-async function initHQ(){
-  // 로딩 표시 (hv-overview 내용 보존하면서)
-  const overviewEl=document.getElementById('hv-overview');
-  overviewEl.style.opacity='0.4';
-  overviewEl.style.pointerEvents='none';
+/* ════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+function todayStr() {
+  // KST = UTC+9
+  return new Date(Date.now() + 9*60*60*1000).toISOString().slice(0,10);
+}
 
-  const [memberData, surveyData, renewData] = await Promise.all([
-    fetchSheet('회원현황'),
-    fetchSheet('신규상담'),
-    fetchSheet('재등록상담'),
-  ]);
-  LIVE.hq={member:memberData, survey:surveyData, renew:renewData};
+function formatDate(d) {
+  const [y,m,day] = d.split('-');
+  return `${m}월 ${day}일`;
+}
 
-  const liveMembers=parseMemberData(memberData);
-  Object.entries(liveMembers).forEach(([bk,bd])=>{
-    LIVE.branches[bk]=bd;
-    Object.assign(BRANCH_DATA[bk],bd);
+function getDayRemaining() {
+  const start = new Date(START_DATE);
+  const today = new Date(todayStr());
+  const diff = Math.floor((today - start) / 86400000);
+  if (diff < 0) return {type:'pre', days: -diff};
+  if (diff >= TOTAL_DAYS) return {type:'done'};
+  return {type:'active', d: TOTAL_DAYS - diff};
+}
+
+function isTodayExerciseDay(uid) {
+  const dayName = DAY_KEY[new Date().getDay()];
+  return USERS[uid]?.days?.includes(dayName);
+}
+
+function getChecksKey(uid) { return `${uid}-${todayStr()}`; }
+function getDoneList(uid) { return checks[getChecksKey(uid)] || []; }
+
+function lsGet(k, def) { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch{ return def; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch{} }
+
+/* ════════════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════════════ */
+let selectedWho = 'admin';
+document.querySelectorAll('.who-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    selectedWho = b.dataset.who;
+    document.querySelectorAll('.who-btn').forEach(x => x.classList.toggle('selected', x === b));
   });
+});
+// pre-select admin
+document.querySelector('[data-who="admin"]').classList.add('selected');
 
-  // 전체 KPI 계산
-  const allBranches=Object.values(BRANCH_DATA);
-  const totalMembers=allBranches.reduce((s,b)=>s+(b.total||0),0);
-  const totalMale=allBranches.reduce((s,b)=>s+(b.male||0),0);
-  const totalFemale=allBranches.reduce((s,b)=>s+(b.female||0),0);
-  const totalRenew=allBranches.reduce((s,b)=>s+(b.renew||0),0);
-  const mp=totalMembers>0?Math.round(totalMale/totalMembers*100):58;
-  const fp=100-mp;
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
 
-  // hv-overview 전체 재렌더링
-  overviewEl.innerHTML=`
-    <div class="kg4">
-      <div class="kpi"><div class="kpi-l">전체 유효회원</div><div class="kpi-v">${totalMembers.toLocaleString()}명</div><div class="kpi-s up">전지점 합산</div></div>
-      <div class="kpi"><div class="kpi-l">남성 회원</div><div class="kpi-v">${totalMale.toLocaleString()}명</div><div class="kpi-s nt">${mp}%</div></div>
-      <div class="kpi"><div class="kpi-l">여성 회원</div><div class="kpi-v">${totalFemale.toLocaleString()}명</div><div class="kpi-s nt">${fp}%</div></div>
-      <div class="kpi"><div class="kpi-l">이번 달 재등록</div><div class="kpi-v">${totalRenew.toLocaleString()}명</div><div class="kpi-s up">전지점 합산</div></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><span class="card-t">지점별 유효회원 & 재등록</span><span class="card-s">최신 기준</span></div>
-      <div id="hq-member-bar-wrap">
-        ${['jy','hj','yd','gr'].map(bk=>{
-          const bd=BRANCH_DATA[bk];
-          const t=bd.total||0; const r=bd.renew||0;
-          const maxT=Math.max(...['jy','hj','yd','gr'].map(k=>BRANCH_DATA[k].total||1));
-          const maxR=Math.max(...['jy','hj','yd','gr'].map(k=>BRANCH_DATA[k].renew||1));
-          return `<div class="mbr-row">
-            <span class="mbr-label">${bd.name}</span>
-            <div class="mbr-bar-bg"><div class="mbr-bar-fill" style="width:${Math.round(t/maxT*100)}%;background:var(--blue-m);">유효 ${t}명</div></div>
-            <div class="mbr-bar-bg" style="max-width:140px;"><div class="mbr-bar-fill" style="width:${Math.round(r/maxR*100)}%;background:var(--green-m);">재등록 ${r}명</div></div>
-          </div>`;
-        }).join('')}
-      </div>
-      <div class="leg" style="margin-top:8px;"><div class="leg-i"><div class="leg-dot" style="background:var(--blue-m);"></div>유효회원</div><div class="leg-i"><div class="leg-dot" style="background:var(--green-m);"></div>재등록</div></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><span class="card-t">전지점 유효회원 월별 변화</span><span class="card-s">2025~2026년</span></div>
-      <svg class="svg-line" id="svg-total" viewBox="0 0 600 95" style="height:95px;"></svg>
-      <div class="leg" style="margin-top:4px;">
-        <div class="leg-i"><div class="leg-dot" style="background:#378ADD;"></div>주엽</div>
-        <div class="leg-i"><div class="leg-dot" style="background:#1D9E75;"></div>화정</div>
-        <div class="leg-i"><div class="leg-dot" style="background:#D85A30;"></div>야당</div>
-        <div class="leg-i"><div class="leg-dot" style="background:#7F77DD;"></div>구래</div>
-      </div>
-    </div>
-    <div class="row2">
-      <div class="card">
-        <div class="card-hd"><span class="card-t">전체 성별 분포</span></div>
-        <div class="donut-wrap">
-          <canvas id="hq-donut" width="88" height="88"></canvas>
-          <div class="donut-leg">
-            <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 ${totalMale.toLocaleString()}명 (${mp}%)</div>
-            <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 ${totalFemale.toLocaleString()}명 (${fp}%)</div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-hd"><span class="card-t">전체 회원권 분포</span></div>
-        <div id="hq-pass-bars"></div>
-      </div>
-    </div>`;
+document.getElementById('login-btn').addEventListener('click', () => {
+  const pw = document.getElementById('pw-input').value;
+  doLogin(selectedWho, pw);
+});
 
-  overviewEl.style.opacity='1';
-  overviewEl.style.pointerEvents='';
 
-  // 차트 그리기
-  drawDonut('hq-donut',[mp,fp],['#378ADD','#E87DBB']);
-  drawLine12('svg-total',[
-    {col:'#378ADD',data:BRANCH_DATA.jy.monthly},
-    {col:'#1D9E75',data:BRANCH_DATA.hj.monthly},
-    {col:'#D85A30',data:BRANCH_DATA.yd.monthly},
-    {col:'#7F77DD',data:BRANCH_DATA.gr.monthly},
-  ]);
-  updateHQPassBars();
+function doLogin(who, pw) {
+  const err = document.getElementById('login-error');
+  let valid = false;
+  if (who === 'admin' && pw === USERS.admin.pw) valid = true;
+  if (who === 'yuchan' && pw === userPws.yuchan) valid = true;
+  if (who === 'seungwoo' && pw === userPws.seungwoo) valid = true;
+  if (!valid) { err.textContent = '비밀번호가 틀렸습니다'; return; }
+  err.textContent = '';
+  currentUser = who;
+  showView(who === 'admin' ? 'admin' : 'user');
+  if (who === 'admin') initAdmin();
+  else initUser(who);
 }
 
-function updateHQMemberBars(){
-  const branches=[
-    {l:'주엽점',bk:'jy'},{l:'화정점',bk:'hj'},{l:'야당점',bk:'yd'},{l:'구래점',bk:'gr'}
-  ];
-  const wrap=document.querySelector('#hv-overview .card:nth-of-type(1) > div');
-  if(!wrap)return;
-  wrap.innerHTML=branches.map(({l,bk})=>{
-    const bd=BRANCH_DATA[bk];
-    const t=bd.total||0; const r=bd.renew||0;
-    const pct=Math.round(t/(Math.max(...branches.map(b=>BRANCH_DATA[b.bk].total||0)))*100);
-    const rpct=Math.round(r/(Math.max(...branches.map(b=>BRANCH_DATA[b.bk].renew||0)))*100);
-    return `<div class="mbr-row">
-      <span class="mbr-label">${l}</span>
-      <div class="mbr-bar-bg"><div class="mbr-bar-fill" style="width:${pct}%;background:var(--blue-m);">유효 ${t}명</div></div>
-      <div class="mbr-bar-bg" style="max-width:140px;"><div class="mbr-bar-fill" style="width:${rpct}%;background:var(--green-m);">재등록 ${r}명</div></div>
+function logout() {
+  currentUser = null;
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-error').textContent = '';
+  showView('login');
+}
+
+/* ════════════════════════════════════════════════════
+   VIEW ROUTING
+═══════════════════════════════════════════════════════ */
+function showView(v) {
+  document.getElementById('v-login').classList.toggle('hidden', v !== 'login');
+  document.getElementById('v-admin').classList.toggle('hidden', v !== 'admin');
+  document.getElementById('v-user').classList.toggle('hidden', v !== 'user');
+}
+
+/* ════════════════════════════════════════════════════
+   ADMIN INIT
+═══════════════════════════════════════════════════════ */
+function initAdmin() {
+  const d = new Date();
+  document.getElementById('admin-date-str').textContent =
+    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 · ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
+  renderAdminDashboard();
+  renderAdminSched('yuchan');
+  renderAdminSched('seungwoo');
+  // Load API key
+  const prov = lsGet('gb_ai_provider', 'openai');
+  document.getElementById('ai-provider').value = prov;
+  document.getElementById('ai-api-key').value = lsGet('gb_ai_key_'+prov, '');
+  document.getElementById('api-key-label').textContent = prov === 'openai' ? 'OpenAI API Key' : 'Anthropic API Key';
+  document.getElementById('ai-provider').addEventListener('change', e => {
+    const p = e.target.value;
+    lsSet('gb_ai_provider', p);
+    document.getElementById('ai-api-key').value = lsGet('gb_ai_key_'+p, '');
+    document.getElementById('api-key-label').textContent = p === 'openai' ? 'OpenAI API Key' : 'Anthropic API Key';
+  });
+  // Load settings
+  document.getElementById('sheets-url').value = lsGet('gb_sheets_url', '');
+  // Admin nav
+  document.getElementById('admin-nav').querySelectorAll('a[data-sv]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('#admin-nav a').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+      document.querySelectorAll('.subview').forEach(s => s.classList.remove('active'));
+      document.getElementById(a.dataset.sv).classList.add('active');
+      if (a.dataset.sv === 'a-yuchan') renderCoachWeek('yuchan');
+      if (a.dataset.sv === 'a-seungwoo') renderCoachWeek('seungwoo');
+      if (a.dataset.sv === 'a-settings') loadProfileUI();
+    });
+  });
+}
+
+function renderAdminDashboard() {
+  const week = getWeekDates();
+  const today = todayStr();
+  const container = document.getElementById('admin-user-cards');
+
+  container.innerHTML = ['yuchan','seungwoo'].map(uid => {
+    const u = USERS[uid];
+    const todayRec = (records[uid]||[]).find(r => r.date === today);
+
+    // Build 7-day mini grid
+    const gridCells = week.map((date, i) => {
+      const dayKey = DAY_KEY[new Date(date + 'T12:00:00').getDay()];
+      const isEx  = USERS[uid].days.includes(dayKey);
+      const isToday = date === today;
+      const isFuture = date > today;
+      const rec  = (records[uid]||[]).find(r => r.date === date);
+      const done = getDoneListForDate(uid, date);
+      const total = schedules[uid].length;
+      const [,m,d] = date.split('-');
+
+      let badgeHtml;
+      if (isEx) {
+        if (isFuture) {
+          badgeHtml = `<span class="wk-rest">예정</span>`;
+        } else if (done.length > 0) {
+          badgeHtml = `<span class="wk-badge wk-done">${done.length}/${total}</span>`;
+        } else {
+          badgeHtml = `<span class="wk-badge wk-miss">미완료</span>`;
+        }
+      } else {
+        badgeHtml = `<span class="wk-rest">휴식</span>`;
+      }
+
+      let painHtml = '';
+      if (rec) {
+        const pm = rec.painMorning||0, pe = rec.painEvening||0;
+        painHtml = `<div class="wk-pain">아<span class="${painWkClass(pm)}">${pm}</span> 저<span class="${painWkClass(pe)}">${pe}</span></div>`;
+      } else if (!isFuture) {
+        painHtml = `<div class="wk-empty">-</div>`;
+      }
+
+      return `<div class="week-cell${isToday?' is-today':''}${isEx&&!isFuture?' is-ex':''}">
+        <div class="wk-name">${KOR_DAYS[i]}</div>
+        <div class="wk-date">${m}/${d}</div>
+        ${badgeHtml}
+        ${painHtml}
+      </div>`;
+    }).join('');
+
+    // Today summary
+    const todayDone = getDoneListForDate(uid, today).length;
+    const totalEx = schedules[uid].length;
+    const pct = totalEx ? Math.round(todayDone/totalEx*100) : 0;
+    const summaryHtml = todayRec
+      ? `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
+          <div class="section-title" style="margin-bottom:6px">오늘 기록</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px">
+            <div><span class="text-muted">수면 </span><strong>${todayRec.sleep}h</strong></div>
+            <div><span class="text-muted">아침 </span><strong class="${painClass(todayRec.painMorning)}">${todayRec.painMorning}</strong></div>
+            <div><span class="text-muted">저녁 </span><strong class="${painClass(todayRec.painEvening)}">${todayRec.painEvening}</strong></div>
+          </div>
+          <div class="progress-bar" style="margin-top:8px" title="오늘 운동 ${todayDone}/${totalEx}">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">운동 완료 ${todayDone}/${totalEx}개</div>
+          ${todayRec.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">${todayRec.notes}</div>`:''}
+        </div>`
+      : `<div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;font-size:11px;color:var(--faint);text-align:center">오늘 기록 미제출</div>`;
+
+    return `<div class="user-card">
+      <div class="flex items-center justify-between" style="margin-bottom:10px">
+        <div class="user-card-name">${u.name} 코치님</div>
+        <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px" onclick="adminGoUser('${uid}')">상세보기</button>
+      </div>
+      <div class="week-grid">${gridCells}</div>
+      ${summaryHtml}
     </div>`;
   }).join('');
 }
 
-function updateHQPassBars(){
-  const allPass={1:0,3:0,6:0,y:0,pt:0};
-  ['jy','hj','yd','gr'].forEach(bk=>{
-    const p=BRANCH_DATA[bk].pass||[];
-    p.forEach(({n,v})=>{
-      if(n.includes('1개월'))allPass[1]+=v;
-      else if(n.includes('2~3')||n.includes('3개월'))allPass[3]+=v;
-      else if(n.includes('6개월'))allPass[6]+=v;
-      else if(n.includes('연회원'))allPass.y+=v;
-      else allPass.pt+=v;
-    });
-  });
-  const total=Object.values(allPass).reduce((a,b)=>a+b,0)||1;
-  const el=document.getElementById('hq-pass-bars');
-  if(!el)return;
-  const items=[
-    {n:'1개월권',v:allPass[1]},{n:'2~3개월권',v:allPass[3]},
-    {n:'6개월권 이상',v:allPass[6]},{n:'연회원',v:allPass.y},{n:'PT/기타',v:allPass.pt}
-  ].filter(x=>x.v>0);
-  const cols=['#378ADD','#378ADD','#1D9E75','#1D9E75','#D85A30'];
-  el.innerHTML=items.map(({n,v},i)=>`
-    <div class="pass-row">
-      <div class="pass-meta"><span>${n}</span><span style="font-weight:600;">${v}명 (${Math.round(v/total*100)}%)</span></div>
-      <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(v/total*100)}%;background:${cols[i]||'#888'};"></div></div>
+function adminGoUser(uid) {
+  const sv = uid === 'yuchan' ? 'a-yuchan' : 'a-seungwoo';
+  document.querySelectorAll('#admin-nav a').forEach(x => x.classList.remove('active'));
+  document.querySelector(`[data-sv="${sv}"]`).classList.add('active');
+  document.querySelectorAll('.subview').forEach(s => s.classList.remove('active'));
+  document.getElementById(sv).classList.add('active');
+}
+
+/* ─── Schedule rendering ─── */
+function renderAdminSched(uid) {
+  const grid = document.getElementById(`sched-${uid}`);
+  if (!grid) return;
+  grid.innerHTML = schedules[uid].map(ex => `
+    <div class="sched-item" data-id="${ex.id}">
+      <span class="sched-drag">⠿</span>
+      <div class="sched-info">
+        <span class="sched-cat tag ${ex.cat==='스트레칭'?'tag-stretch-ex':'tag-power'}">${ex.cat}</span>
+        <div class="sched-name">${ex.name}</div>
+        <div class="sched-meta">${ex.sets}${ex.note?` · <em style="color:var(--faint)">${ex.note}</em>`:''}</div>
+      </div>
+      <button class="sched-del" title="삭제" onclick="deleteEx('${uid}','${ex.id}')">×</button>
     </div>`).join('');
 }
 
-function renderBranchDetail(bd){
-  const fp=100-bd.mp;
-  const passMax=Math.max(...(bd.pass||[]).map(p=>p.v),1);
-  const purposeMax=Math.max(...(bd.purpose||[]).map(d=>d.v),1);
-  const pathMax=Math.max(...(bd.path||[]).map(d=>d.v),1);
-  const ageMax=Math.max(...(bd.age||[]).map(d=>d.v),1);
-  const yr=new Date().getFullYear();
-  const labels=bd.monthLabels||MONTHS12.slice(0,bd.monthly?.length||12);
+function adminTab(uid, tab, btn) {
+  const tabs = btn.closest('.flex').querySelectorAll('.btn');
+  tabs.forEach(b => b.classList.remove('btn-red'));
+  btn.classList.add('btn-red');
+  const weekEl  = document.getElementById(`${uid}-tab-week`);
+  const recsEl  = document.getElementById(`${uid}-tab-records`);
+  weekEl.classList.add('hidden');
+  recsEl.classList.add('hidden');
+  if (tab === 'week') { weekEl.classList.remove('hidden'); renderCoachWeek(uid); }
+  else { recsEl.classList.remove('hidden'); renderAdminRecords(uid); }
+}
 
-  document.getElementById('branch-detail-content').innerHTML=`
-  <div style="display:flex;flex-direction:column;gap:13px;">
-    ${bd.summary7 ? (() => {
-      const s=bd.summary7;
-      const passEntries=Object.entries(s.passCount||{}).sort((a,b)=>b[1]-a[1]);
-      return `
-    <div class="card" style="border-left:3px solid ${bd.col};">
-      <div class="card-hd"><span class="card-t">📅 지난 7일 요약</span><span class="card-s">${new Date(Date.now()-7*864e5).toLocaleDateString('ko-KR')} ~ 오늘</span></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">신규 상담</div>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
-            <div class="kpi" style="padding:10px 12px;">
-              <div class="kpi-l">총 신규</div>
-              <div class="kpi-v" style="font-size:18px;">${s.newTotal}명</div>
-              <div class="kpi-s nt">남 ${s.newMale} / 여 ${s.newFemale}</div>
+function loadRecordsTab(uid) {}
+
+function renderCoachWeek(uid) {
+  const container = document.getElementById(`week-${uid}`);
+  if (!container) return;
+  const week  = getWeekDates();
+  const today = todayStr();
+
+  container.innerHTML = week.map((date, i) => {
+    const dayKey   = DAY_KEY[new Date(date + 'T12:00:00').getDay()];
+    const isEx     = USERS[uid].days.includes(dayKey);
+    const isToday  = date === today;
+    const isFuture = date > today;
+    const rec      = (records[uid]||[]).find(r => r.date === date);
+    const done     = getDoneListForDate(uid, date);
+    const [,m,d]   = date.split('-');
+
+    let painHtml = '';
+    if (rec) {
+      const pm = rec.painMorning||0, pe = rec.painEvening||0;
+      painHtml = `<div class="wdd-pain-row">
+        <div class="wdd-pain-item"><span class="wdd-pain-label">아침 통증</span>&nbsp;<strong class="${painClass(pm)}">${pm}/10</strong></div>
+        <div class="wdd-pain-item"><span class="wdd-pain-label">저녁 통증</span>&nbsp;<strong class="${painClass(pe)}">${pe}/10</strong></div>
+        <div class="wdd-pain-item"><span class="wdd-pain-label">수면</span>&nbsp;<strong>${rec.sleep}h</strong></div>
+      </div>`;
+      if (rec.notes) painHtml += `<div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;font-style:italic">${rec.notes}</div>`;
+    }
+
+    let exHtml = '';
+    if (isEx) {
+      const total = schedules[uid].length;
+      if (isFuture) {
+        exHtml = `<div style="font-size:11px;color:var(--muted);margin-bottom:6px">예정 (${total}개)</div>`;
+        exHtml += `<div class="wdd-exlist">${schedules[uid].map(ex => `
+          <div class="wdd-ex">
+            <div class="wdd-chk chk-pending"></div>
+            <div>
+              <div style="font-weight:500;font-size:12px">${ex.name} <span style="color:var(--faint);font-size:10px;margin-left:4px">${ex.sets}</span></div>
+              ${ex.note?`<div style="font-size:10px;color:var(--blue);margin-top:2px;line-height:1.4">★ ${ex.note}</div>`:''}
             </div>
-            <div class="kpi" style="padding:10px 12px;">
-              <div class="kpi-l">전환 성공</div>
-              <div class="kpi-v" style="font-size:18px;color:var(--green);">${s.newConvert}명</div>
-              <div class="kpi-s nt">전환율 ${s.newTotal?Math.round(s.newConvert/s.newTotal*100):0}%</div>
-            </div>
-            <div class="kpi" style="padding:10px 12px;">
-              <div class="kpi-l">팔로업/미전환</div>
-              <div class="kpi-v" style="font-size:18px;color:var(--red);">${s.newFU}명</div>
-              <div class="kpi-s nt">&nbsp;</div>
-            </div>
-          </div>
+          </div>`).join('')}</div>`;
+      } else {
+        const pct = total ? Math.round(done.length/total*100) : 0;
+        exHtml = `<div style="font-size:11px;margin-bottom:6px">
+          <span class="${done.length===total?'text-green':done.length>0?'text-amber':'text-muted'}">
+            완료 ${done.length}/${total}개 (${pct}%)
+          </span>
         </div>
+        <div class="progress-bar" style="margin-bottom:8px">
+          <div class="progress-fill" style="width:${pct}%;background:${done.length===total?'var(--green)':'var(--amber)'}"></div>
+        </div>`;
+        exHtml += `<div class="wdd-exlist">${schedules[uid].map(ex => {
+          const isDone = done.includes(ex.id);
+          return `<div class="wdd-ex" style="align-items:flex-start;padding:6px 0">
+            <div class="wdd-chk ${isDone?'chk-done':'chk-pending'}" style="margin-top:2px;flex-shrink:0">
+              ${isDone?`<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+            </div>
+            <div>
+              <div style="font-weight:500;font-size:12px;${isDone?'color:var(--green)':''}">${ex.name} <span style="color:var(--faint);font-size:10px;margin-left:4px;font-weight:400">${ex.sets}</span></div>
+              ${ex.note?`<div style="font-size:10px;color:var(--blue);margin-top:2px;line-height:1.4">★ ${ex.note}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}</div>`;
+      }
+    } else if (!rec) {
+      exHtml = `<div style="font-size:12px;color:var(--faint)">기록 없음</div>`;
+    }
+
+    return `<div class="wdd-card${isToday?' is-today':''}${isEx?' is-ex-day':''}">
+      <div class="wdd-header">
         <div>
-          <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">재등록</div>
-          <div class="kpi" style="padding:10px 12px;margin-bottom:8px;">
-            <div class="kpi-l">총 재등록</div>
-            <div class="kpi-v" style="font-size:18px;">${s.renewTotal}명</div>
-            <div class="kpi-s nt">남 ${s.renewMale} / 여 ${s.renewFemale}</div>
-          </div>
-          ${passEntries.length?`
-          <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">회원권별</div>
-          ${passEntries.map(([n,v])=>`
-          <div class="dist-row" style="margin-bottom:4px;">
-            <span class="dist-name">${n}</span>
-            <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(v/s.renewTotal*100)}%;background:${bd.col};"></div></div>
-            <span class="dist-num">${v}명</span>
-          </div>`).join('')}`:'<div style="font-size:12px;color:var(--gray);">재등록 데이터 없음</div>'}
+          <div class="wdd-title">${KOR_DAYS_FULL[i]}&ensp;<span style="font-size:12px;color:var(--muted);font-weight:400">${m}월 ${d}일</span>${isToday?`&ensp;<span style="font-size:11px;font-weight:700;color:var(--red)">오늘</span>`:''}</div>
+          <div class="wdd-sub">${isEx?'운동일':'휴식일'}</div>
         </div>
       </div>
+      ${painHtml}
+      ${exHtml}
     </div>`;
-    })() : ''}
-    <div class="kg4">
-      <div class="kpi"><div class="kpi-l">유효회원</div><div class="kpi-v">${bd.total}명</div><div class="kpi-s up">최신 기준</div></div>
-      <div class="kpi"><div class="kpi-l">남성</div><div class="kpi-v">${bd.male}명</div><div class="kpi-s nt">${bd.mp}%</div></div>
-      <div class="kpi"><div class="kpi-l">여성</div><div class="kpi-v">${bd.female}명</div><div class="kpi-s nt">${fp}%</div></div>
-      <div class="kpi"><div class="kpi-l">재등록</div><div class="kpi-v">${bd.renew}명</div><div class="kpi-s up">재등록률 ${Math.round(bd.renew/bd.total*100)}%</div></div>
+  }).join('');
+}
+
+function renderAdminRecords(uid) {
+  const tbl = document.getElementById(`tbl-${uid}`);
+  if (!tbl) return;
+  const recs = records[uid] || [];
+  if (!recs.length) { tbl.innerHTML = '<tr><td style="padding:16px;color:var(--muted)">기록 없음</td></tr>'; return; }
+  tbl.innerHTML = `<thead><tr>
+    <th>날짜</th><th>수면</th><th>아침</th><th>저녁</th><th>식사</th><th>운동</th><th>특이사항</th>
+  </tr></thead><tbody>${recs.slice(0,30).map(r => {
+    const pm = r.painMorning||0, pe = r.painEvening||0;
+    return `<tr>
+      <td>${formatDate(r.date)}</td>
+      <td>${r.sleep}h</td>
+      <td><span class="pain-pill ${pm>=7?'pain-high':pm>=4?'pain-mid':'pain-low'}">${pm}</span></td>
+      <td><span class="pain-pill ${pe>=7?'pain-high':pe>=4?'pain-mid':'pain-low'}">${pe}</span></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.food||'-'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.exercise||'-'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||'-'}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+/* ─── Add exercise form ─── */
+function showAddEx(uid) {
+  const c = document.getElementById(`add-ex-${uid}`);
+  c.innerHTML = `<div class="add-ex-form">
+    <div class="section-title">새 운동 추가</div>
+    <div class="add-ex-grid">
+      <div><label class="label">카테고리</label>
+        <select class="input" id="new-cat-${uid}">
+          <option value="스트레칭">스트레칭</option>
+          <option value="근력">근력</option>
+        </select></div>
+      <div><label class="label">운동 이름</label>
+        <input class="input" id="new-name-${uid}" placeholder="예: 글루트 브릿지"></div>
+      <div><label class="label">횟수/시간</label>
+        <input class="input" id="new-sets-${uid}" placeholder="예: 15회 × 3세트"></div>
+      <div><label class="label">주의사항 (선택)</label>
+        <input class="input" id="new-note-${uid}" placeholder="코칭 포인트"></div>
     </div>
-    <div class="card">
-      <div class="card-hd"><span class="card-t">유효회원 & 재등록 추이</span><span class="card-s">${bd.name} · 최근 12개월</span></div>
-      <svg class="svg-line" id="det-line" viewBox="0 0 600 95" style="height:95px;"></svg>
-      <div class="leg" style="margin-top:4px;">
-        <div class="leg-i"><div class="leg-dot" style="background:${bd.col};"></div>유효회원</div>
-        <div class="leg-i"><div class="leg-dot" style="background:${bd.col}88;"></div>재등록</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><span class="card-t">회원권별 추이</span><span class="card-s">${bd.name} · 최근 12개월</span></div>
-      <svg class="svg-line" id="det-pass-line" viewBox="0 0 600 95" style="height:95px;"></svg>
-      <div class="leg" style="margin-top:4px;">
-        ${(bd.pass||[]).map((p,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${PASS_COLS[i]||'#888'};"></div>${p.n}</div>`).join('')}
-      </div>
-    </div>
-    <div class="row2">
-      <div class="card">
-        <div class="card-hd"><span class="card-t">회원권 분포 (최신)</span></div>
-        ${(bd.pass||[]).map((p,i)=>`
-        <div class="pass-row">
-          <div class="pass-meta"><span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PASS_COLS[i]||'#888'};flex-shrink:0;"></span>${p.n}</span><span style="font-weight:600;">${p.v}명 (${Math.round(p.v/bd.total*100)}%)</span></div>
-          <div class="pass-bg"><div class="pass-fill" style="width:${Math.round(p.v/passMax*100)}%;background:${PASS_COLS[i]||'#888'};"></div></div>
-        </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="card-hd"><span class="card-t">성별 분포</span></div>
-        <div class="donut-wrap">
-          <canvas id="det-donut" width="88" height="88"></canvas>
-          <div class="donut-leg">
-            <div class="donut-i"><div class="donut-clr" style="background:#378ADD;"></div>남성 ${bd.male}명 (${bd.mp}%)</div>
-            <div class="donut-i"><div class="donut-clr" style="background:#E87DBB;"></div>여성 ${bd.female}명 (${fp}%)</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row3">
-      <div class="card">
-        <div class="card-hd"><span class="card-t">운동 목적 분포</span></div>
-        ${(bd.purpose||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
-          <span class="dist-name">${d.n}</span>
-          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/purposeMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}</span>
-        </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="card-hd"><span class="card-t">방문 경로 분포</span></div>
-        ${(bd.path||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
-          <span class="dist-name">${d.n}</span>
-          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/pathMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}</span>
-        </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="card-hd"><span class="card-t">나이대 분포</span></div>
-        ${(bd.age||[]).map(d=>`<div class="dist-row" style="margin-bottom:5px;">
-          <span class="dist-name">${d.n}</span>
-          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:${Math.round(d.v/ageMax*100)}%;background:${bd.col};"></div></div>
-          <span class="dist-num">${d.v}</span>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div class="tbl">
-      <div class="tbl-hd">
-        <span style="font-size:13px;font-weight:600;">담당자별 상담 & 전환 현황</span>
-        <span class="card-s">이번 달 기준</span>
-      </div>
-      <table>
-        <tr>
-          <th>담당자</th>
-          <th>총 상담</th>
-          <th>신규 전환</th>
-          <th>재등록</th>
-          <th>전체 성공</th>
-          <th>전환율</th>
-          <th>이번 달 추이</th>
-        </tr>
-        ${bd.staff.map(s=>{
-          const total=s.consult;
-          const success=s.convert+s.renew;
-          const rate=Math.round(success/total*100);
-          const rateCol=rate>=45?'#27500A':rate>=30?'#185FA5':'#791F1F';
-          const rateBg=rate>=45?'#EAF3DE':rate>=30?'#E6F1FB':'#FCEBEB';
-          const barW=Math.round(rate/100*100);
-          return `<tr>
-            <td style="font-weight:600;">${s.name}</td>
-            <td>${total}명</td>
-            <td>${s.convert}명</td>
-            <td>${s.renew}명</td>
-            <td style="font-weight:600;">${success}명</td>
-            <td>
-              <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:${rateBg};color:${rateCol};">${rate}%</span>
-            </td>
-            <td style="min-width:100px;">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div style="flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
-                  <div style="width:${barW}%;height:100%;background:${rateCol};border-radius:3px;"></div>
-                </div>
-                <span style="font-size:10px;color:var(--gray);width:28px;">${rate}%</span>
-              </div>
-            </td>
-          </tr>`;
-        }).join('')}
-        <tr style="background:var(--bg2);">
-          <td style="font-weight:700;color:var(--text2);">합계</td>
-          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.consult,0)}명</td>
-          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.convert,0)}명</td>
-          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.renew,0)}명</td>
-          <td style="font-weight:700;">${bd.staff.reduce((a,s)=>a+s.convert+s.renew,0)}명</td>
-          <td colspan="2">
-            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--blue-l);color:var(--blue);">
-              전체 ${Math.round(bd.staff.reduce((a,s)=>a+s.convert+s.renew,0)/bd.staff.reduce((a,s)=>a+s.consult,0)*100)}%
-            </span>
-          </td>
-        </tr>
-      </table>
+    <div class="flex gap-8">
+      <button class="btn btn-red btn-sm" onclick="addEx('${uid}')">추가</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-ex-${uid}').innerHTML=''">취소</button>
     </div>
   </div>`;
-
-  drawLine12('det-line',[
-    {col:bd.col,data:bd.monthly},
-    {col:bd.col+'88',data:bd.renews},
-  ], labels);
-  drawLine12('det-pass-line',
-    (bd.passMonthly||[]).map((data,i)=>({col:PASS_COLS[i],data})),
-    labels
-  );
-  drawDonut('det-donut',[bd.mp,fp],['#378ADD','#E87DBB']);
 }
 
-/* ─── BRANCH ─── */
-function brGo(v){
-  ['input','fu'].forEach(id=>{
-    const el=document.getElementById('bv-'+id);
-    if(el)el.className='view'+(id===v?' on':'');
-    const n=document.getElementById('bn-'+id);
-    if(n)n.classList.toggle('act',id===v);
+function addEx(uid) {
+  const name = document.getElementById(`new-name-${uid}`).value.trim();
+  if (!name) return;
+  const ex = {
+    id: `${uid[0]}${Date.now()}`,
+    cat: document.getElementById(`new-cat-${uid}`).value,
+    name,
+    sets: document.getElementById(`new-sets-${uid}`).value.trim(),
+    note: document.getElementById(`new-note-${uid}`).value.trim()
+  };
+  schedules[uid].push(ex);
+  saveSchedule(uid);
+  document.getElementById(`add-ex-${uid}`).innerHTML = '';
+  renderAdminSched(uid);
+}
+
+function deleteEx(uid, id) {
+  if (!confirm('이 운동을 삭제할까요?')) return;
+  schedules[uid] = schedules[uid].filter(e => e.id !== id);
+  saveSchedule(uid);
+  renderAdminSched(uid);
+}
+
+async function saveSchedule(uid) {
+  if (db) {
+    try { await db.doc(`schedules/${uid}`).set({items: schedules[uid]}); } catch(e) { console.warn(e); }
+  }
+  lsSet(`gb_sched_${uid}`, schedules[uid]);
+}
+
+/* ─── Settings ─── */
+async function saveApiKey() {
+  const p = document.getElementById('ai-provider').value;
+  const k = document.getElementById('ai-api-key').value.trim();
+  lsSet('gb_ai_key_'+p, k);
+  lsSet('gb_ai_provider', p);
+  // Sync to DB so all devices get the key
+  if (db) {
+    try {
+      await db.doc('settings/apiKeys').update({[p]: k, provider: p});
+    } catch(e) {
+      // If update fails (doc doesn't exist), use set
+      try { await db.doc('settings/apiKeys').set({[p]: k, provider: p}); } catch(e2) {}
+    }
+  }
+  showToast('API 키 저장됨 (전체 기기 동기화)');
+}
+function saveSettings() {
+  lsSet('gb_sheets_url', document.getElementById('sheets-url').value.trim());
+  showToast('설정 저장됨');
+}
+function savePw(uid) {
+  const pw = document.getElementById(`pw-${uid}`).value;
+  if (!pw) return;
+  userPws[uid] = pw;
+  lsSet('gb_pws', userPws);
+  document.getElementById(`pw-${uid}`).value = '';
+  showToast('비밀번호 변경됨');
+}
+
+async function saveProfile(uid) {
+  const text = document.getElementById(`profile-${uid}`).value.trim();
+  profiles[uid] = text;
+  lsSet(`gb_profile_${uid}`, text);
+  if (db) {
+    try { await db.doc(`profiles/${uid}`).set({text, updatedAt: new Date().toISOString()}); } catch(e) {}
+  }
+  showToast(`${USERS[uid].name} 프로필 저장됨`);
+}
+
+function loadProfileUI() {
+  ['yuchan','seungwoo'].forEach(uid => {
+    const el = document.getElementById(`profile-${uid}`);
+    if (el) el.value = profiles[uid] || '';
   });
-  document.getElementById('br-page-title').textContent={input:'상담 입력',fu:'팔로업 목록'}[v]||'';
-  // 팔로업 탭 클릭 시 팔로업 시트에서 실시간 reload
-  if(v==='fu' && currentUser){
-    fetchSheet('팔로업').then(data=>{
-      if(data){
-        const {cols,rows}=data;
-        fuData=rows
-          .map(row=>rowToObj(cols,row))
-          .filter(obj=>obj['지점']===currentUser.name && obj['상태']!=='완료')
-          .map(obj=>{
-            const dateStr=obj['상담날짜']||'';
-            const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
-            return {
-              name:obj['이름']||'',
-              days,
-              meta:obj['비전환사유']||obj['메모']||'',
-              staff:obj['담당자']||'',
-            };
-          })
-          .sort((a,b)=>b.days-a.days);
-        renderBranchFU();
-      }
-    });
+  const rr = document.getElementById('rehab-ref-text');
+  if (rr) rr.value = rehabRef || '';
+}
+
+// Coach self-input: save their own medical info
+async function saveMyInfo() {
+  const uid = currentUser;
+  if (!uid || uid === 'admin') return;
+  const text = document.getElementById('myinfo-text').value.trim();
+  profiles[uid] = text;
+  lsSet(`gb_profile_${uid}`, text);
+  if (db) {
+    try { await db.doc(`profiles/${uid}`).set({text, updatedAt: new Date().toISOString()}); } catch(e) {}
   }
+  showToast('내 정보가 저장되었습니다');
 }
 
-async function initBranch(a){
-  // 팔로업 시트에서 해당 지점 미완료 팔로업 로드
-  const fuSheetData = await fetchSheet('팔로업');
-  if(fuSheetData){
-    const {cols,rows}=fuSheetData;
-    fuData=rows
-      .map(row=>rowToObj(cols,row))
-      .filter(obj=>obj['지점']===a.name && obj['상태']!=='완료')
-      .map(obj=>{
-        const dateStr=obj['상담날짜']||'';
-        const days=dateStr?Math.floor((new Date()-new Date(dateStr))/86400000):0;
-        return {
-          name:obj['이름']||'',
-          days,
-          meta:obj['비전환사유']||obj['메모']||'',
-          staff:obj['담당자']||'',
-        };
-      })
-      .sort((a,b)=>b.days-a.days);
+function loadMyInfoUI() {
+  const uid = currentUser;
+  if (!uid || uid === 'admin') return;
+  const el = document.getElementById('myinfo-text');
+  if (el) el.value = profiles[uid] || '';
+}
+
+// Admin: save rehab reference material
+async function saveRehabRef() {
+  const text = document.getElementById('rehab-ref-text').value.trim();
+  rehabRef = text;
+  lsSet('gb_rehab_ref', text);
+  if (db) {
+    try { await db.doc('settings/rehabRef').set({text, updatedAt: new Date().toISOString()}); } catch(e) {}
   }
-  const badgeEl=document.getElementById('br-fu-badge');
-  if(badgeEl) badgeEl.textContent=fuData.length||0;
-  renderBranchFU();
+  showToast('재활 참고자료 저장됨');
 }
 
-function drawBars5(id,totals,renews){
-  const el=document.getElementById(id);
-  if(!el)return;
-  const labs=['1월','2월','3월','4월','5월'];
-  const mx=Math.max(...totals);
-  el.innerHTML=labs.map((l,i)=>`<div class="bar-grp">
-    <div class="bar-pair">
-      <div class="bar b-blue" style="height:${Math.round(totals[i]/mx*62)}px;"></div>
-      <div class="bar b-green" style="height:${Math.round(renews[i]/mx*62)}px;"></div>
-    </div>
-    <div class="bar-lbl">${l}</div>
-  </div>`).join('');
-}
-
-function setType(t,el){
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('sec-new').classList.toggle('hidden',t!=='new');
-  document.getElementById('sec-renew').classList.toggle('hidden',t!=='renew');
-}
-
-function toggleOther(cb,targetId){
-  const el=document.getElementById(targetId);
-  if(el)el.classList.toggle('on',cb.checked);
-}
-
-function toggleConvert(val){
-  document.getElementById('convert-pass-wrap').style.display=val==='등록 완료'?'':'none';
-  document.getElementById('no-convert-wrap').style.display=(val==='미전환'||val==='팔로업 필요')?'':'none';
-}
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbzV1MGatGFkqktygZhgaUCdOA2UzdebEmVbze4ACIro3yvPb3RKbmk49HyLCk7jgn49Xw/exec';
-
-function getChecked(name){
-  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el=>el.parentElement.textContent.trim()).join(', ');
-}
-function getCheckedClass(cls){
-  return Array.from(document.querySelectorAll(`.${cls} .chip.on`)).map(el=>el.textContent.trim()).join(', ');
-}
-function getRadio(name){
-  const el=document.querySelector(`input[name="${name}"]:checked`);
-  return el?el.parentElement.textContent.trim():'';
-}
-function getVal(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
-function getOther(id){ const el=document.getElementById(id); return (el&&el.classList.contains('on'))?el.querySelector('input').value.trim():''; }
-
-async function saveConsult(){
-  const surveyType = document.querySelector('.type-btn.on').textContent.includes('신규') ? 'new' : 'renew';
-  const branch = currentUser ? currentUser.name : '';
-  console.log('saveConsult 시작 — type:', surveyType, 'branch:', branch);
-
-  const resultVal = getVal('result-sel');
-  let payload = { type: surveyType, branch };
-
-  if(surveyType === 'new'){
-    // 날짜/기본정보
-    const dateInputs = document.querySelectorAll('#sec-new input[type=date]');
-    payload.date    = dateInputs[0]?.value || '';
-    payload.staff   = getVal('br-coach-f');
-    // 이름/성별/생년월일
-    const textInputs = document.querySelectorAll('#sec-new .fg2 input[type=text], #sec-new .fg2 input[type=number]');
-    payload.name   = document.querySelector('#sec-new input[placeholder="홍길동"]')?.value.trim() || '';
-    payload.gender = document.querySelector('#sec-new select')?.value || '';
-    payload.birth  = dateInputs[1]?.value || '';
-    // 방문경로
-    const pathChecked = Array.from(document.querySelectorAll('input[name="path"]:checked')).map(el=>el.parentElement.textContent.trim());
-    payload.path      = pathChecked.join(', ');
-    payload.path_note = (getOther('path-naver')||'') + ' ' + (getOther('path-etc')||'');
-    // 운동경력
-    payload.career = document.querySelector('#sec-new textarea')?.value.trim() || '';
-    // 운동목적
-    payload.purpose = Array.from(document.querySelectorAll('#sec-new .chips .chip.on')).map(el=>el.textContent.trim()).join(', ');
-    // 망설이는이유
-    const hesChecked = Array.from(document.querySelectorAll('input[name="hesit"]:checked')).map(el=>el.parentElement.textContent.trim());
-    payload.hesitate      = hesChecked.join(', ');
-    payload.hesitate_note = getOther('hesit-etc');
-    // 찾아온이유
-    const reasonChecked = Array.from(document.querySelectorAll('input[name="reason"]:checked')).map(el=>el.parentElement.textContent.trim());
-    payload.reason      = reasonChecked.join(', ');
-    payload.reason_note = getOther('reason-etc');
-    // 일정
-    payload.freq = getRadio('freq');
-    payload.time = getRadio('time');
-    const resultSel = document.getElementById('result-sel');
-    payload.result = resultSel ? resultSel.value : '';
-    // 등록 완료일 때만 회원권 전송, 미전환/팔로업은 빈칸
-    const isConverted = payload.result === '등록 완료';
-    payload.pass      = isConverted ? (document.querySelector('#convert-pass-wrap select')?.value || '') : '';
-    payload.no_reason = document.querySelector('#no-convert-wrap input')?.value.trim() || '';
-    payload.memo = document.querySelectorAll('#sec-new textarea')[1]?.value.trim() || '';
-
-  } else {
-    // 재등록
-    const dateInputs = document.querySelectorAll('#sec-renew input[type=date]');
-    payload.date  = dateInputs[0]?.value || '';
-    payload.staff = getVal('br-coach-r');
-    payload.name   = document.querySelector('#sec-renew input[placeholder="홍길동"]')?.value.trim() || '';
-    payload.gender = document.querySelector('#sec-renew select')?.value || '';
-    payload.birth  = dateInputs[1]?.value || '';
-    const selects  = document.querySelectorAll('#sec-renew select');
-    payload.old_pass = selects[1]?.value || '';
-    payload.new_pass = selects[2]?.value || '';
-    payload.satisfied      = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(1) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
-    payload.satisfied_note = getOther('sat-etc');
-    payload.next_goal = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(2) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
-    payload.wishes      = Array.from(document.querySelectorAll('#sec-renew .chk-grp:nth-of-type(3) input:checked')).map(el=>el.parentElement.textContent.trim()).join(', ');
-    payload.wishes_note = getOther('wish-etc');
-    payload.memo = document.querySelector('#sec-renew textarea')?.value.trim() || '';
-  }
-
-  // 버튼 로딩 상태
-  const btn = document.querySelector('#bv-input .btn-p');
-  const original = btn.textContent;
-  btn.textContent = '저장 중...';
-  btn.disabled = true;
-
-  console.log('payload:', JSON.stringify(payload));
-  console.log('API_URL:', API_URL);
-
-  // Google Apps Script POST 전송
+function showScheduleApplyBtn(jsonStr, uid) {
+  // Only show in admin view
   try {
-    fetch(API_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    const items = JSON.parse(jsonStr);
+    if (!Array.isArray(items)) return;
+    const msgContainer = document.getElementById('chat-messages');
+    const applyEl = document.createElement('div');
+    applyEl.className = 'msg msg-system';
+    applyEl.style.cssText = 'border:1px solid var(--blue);background:rgba(79,142,247,.08);margin-top:8px';
+    const targetLabel = uid ? USERS[uid].name : '코치 선택 필요';
+    applyEl.innerHTML = `
+      <div style="font-size:12px;color:var(--blue);margin-bottom:10px">
+        <strong>운동 스케쥴 감지됨</strong> — ${items.length}개 운동
+        ${!uid ? '<br><span style="color:var(--amber)">코치 컨텍스트를 한 명으로 선택 후 적용하세요.</span>' : ''}
+      </div>
+      <div style="font-size:12px;margin-bottom:12px;color:var(--muted)">
+        ${items.slice(0,4).map(e=>`• ${e.name} (${e.sets})`).join('<br>')}
+        ${items.length>4?`<br>... 외 ${items.length-4}개`:''}
+      </div>
+      ${uid ? `
+        <div class="flex gap-8">
+          <button class="btn btn-red btn-sm" onclick="applySchedule('${uid}', ${JSON.stringify(jsonStr).replace(/'/g,"\\'")})" style="flex:1">
+            ${USERS[uid].name} 스케쥴 적용
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="this.closest('.msg').remove()">취소</button>
+        </div>` : ''}`;
+    msgContainer.appendChild(applyEl);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  } catch(e) { console.warn('Schedule parse error', e); }
+}
+
+async function applySchedule(uid, jsonStr) {
+  try {
+    const raw = JSON.parse(jsonStr);
+    // Assign IDs and cat default
+    const prefix = uid === 'yuchan' ? 'y' : 's';
+    const newItems = raw.map((e, i) => ({
+      id: `${prefix}gpt${Date.now()}_${i}`,
+      cat: e.cat || '근력',
+      name: e.name || '운동',
+      sets: e.sets || '',
+      note: e.note || ''
+    }));
+    schedules[uid] = newItems;
+    if (db) {
+      try { await db.doc(`schedules/${uid}`).set({items: newItems}); } catch(e) {}
+    }
+    lsSet(`gb_sched_${uid}`, newItems);
+    showToast(`${USERS[uid].name} 스케쥴 업데이트 완료 (${newItems.length}개 운동)`);
+    // Remove apply card
+    document.querySelectorAll('#chat-messages .msg-system').forEach(el => {
+      if (el.textContent.includes('운동 스케쥴 감지됨')) el.remove();
     });
+    appendChatMsg('system', `✓ ${USERS[uid].name} 코치님 스케쥴이 업데이트되었습니다. (${newItems.length}개 운동)`);
+  } catch(e) { showToast('스케쥴 적용 실패: ' + e.message); }
+}
 
-    const isFU = payload.result === '팔로업 필요' || payload.result === '미전환';
+/* ════════════════════════════════════════════════════
+   USER INIT
+═══════════════════════════════════════════════════════ */
+function initUser(uid) {
+  const u = USERS[uid];
+  document.getElementById('u-name').textContent = u.name + ' 코치님';
+  document.getElementById('u-cond').textContent = '';
+  // Load local checks if no db
+  if (!db) {
+    const k = getChecksKey(uid);
+    checks[k] = lsGet('gb_checks_'+k, []);
+    const allRecs = lsGet('gb_records_'+uid, []);
+    records[uid] = allRecs;
+  }
+  coachChatHistory = []; // reset chat on new login
+  renderCountdown();
+  renderPainTrend();
+  renderTodayExercises();
+  renderUserSchedule();
+  renderHistory();
+  initLogForm(uid);
+  initCoachChat();
+}
 
-    setTimeout(() => {
-      console.log('저장 완료 처리 — result:', payload.result, 'isFU:', isFU);
-      btn.textContent = '✅ 저장 완료!';
-      btn.disabled = false;
-      setTimeout(()=>{ btn.textContent = original; }, 2000);
-      // 팔로업이면 Sheets 다시 불러와서 목록 업데이트
-      if(isFU){
-        brGo('fu'); // 팔로업 탭으로 이동 (탭 이동 시 자동 reload)
-      }
-    }, 1500);
-
-  } catch(err) {
-    btn.textContent = '❌ 오류 발생';
-    btn.disabled = false;
-    console.error(err);
-    setTimeout(()=>{ btn.textContent = original; }, 2000);
+function renderCountdown() {
+  const cd = getDayRemaining();
+  const cdNum = document.getElementById('cd-number');
+  const cdLabel = document.getElementById('cd-label');
+  const cdDate = document.getElementById('cd-date');
+  if (cd.type === 'pre') {
+    cdNum.innerHTML = `<div class="countdown-pre">D-${cd.days}</div>`;
+    cdLabel.textContent = '시작까지 남은 날';
+    cdDate.textContent = `프로그램 시작: ${formatDate(START_DATE)}`;
+  } else if (cd.type === 'done') {
+    cdNum.innerHTML = `<div class="countdown-done">완료</div>`;
+    cdLabel.textContent = '31일 재활 프로그램 완료!';
+    cdDate.textContent = '';
+  } else {
+    cdNum.innerHTML = `<div class="countdown-d">D-${String(cd.d).padStart(2,'0')}</div>`;
+    cdLabel.textContent = `재활 ${TOTAL_DAYS-cd.d+1}일차 · ${cd.d}일 남음`;
+    cdDate.textContent = `${formatDate(todayStr())} · 목표 완주: ${formatDate('2026-10-11')}`;
   }
 }
 
-function renderBranchFU(){
-  const el=document.getElementById('br-fu');
-  if(!el)return;
-  const cnt=fuData.length;
-  const urg=fuData.filter(d=>d.days>=7).length;
-  const cntEl=document.getElementById('fu-cnt');
-  const urgEl=document.getElementById('fu-urg');
-  const badgeEl=document.getElementById('br-fu-badge');
-  if(cntEl)cntEl.textContent=cnt+'건';
-  if(urgEl)urgEl.textContent=urg+'건';
-  if(badgeEl)badgeEl.textContent=cnt;
-  el.innerHTML=`<div class="fu-hd"><span>회원 정보</span><span style="margin-left:auto;">경과 / 액션</span></div>`
-    +(cnt===0
-    ?`<div style="padding:24px;text-align:center;color:var(--gray);font-size:13px;">팔로업 대상이 없습니다 🎉</div>`
-    :fuData.map((d,i)=>`<div class="fu-row">
-      <div class="fu-av">${(d.name||'?')[0]}${(d.name||'?')[1]||''}</div>
-      <div class="fu-info">
-        <div class="fu-name">${d.name||''} <span class="day-b ${d.days>=7?'day-hot':d.days>=4?'day-warm':'day-cool'}">${d.days}일 경과</span></div>
-        <div class="fu-meta">${d.meta||''}</div>
-      </div>
-      <div class="fu-acts">
-        <button class="btn-sm btn-sm-p" onclick="markDone(${i})">연락 완료</button>
-        <button class="btn-sm btn-sm-del" onclick="delFU(${i})">삭제</button>
-      </div>
-    </div>`).join(''));
-}
+function renderPainTrend() {
+  const uid = currentUser;
+  const wrap = document.getElementById('pain-trend-wrap');
+  const svg = document.getElementById('pain-trend-svg');
+  if (!wrap || !svg) return;
 
-async function markDone(i){
-  const item=fuData[i];
-  if(!item)return;
-  try{
-    fetch(API_URL,{
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'fu_done', name:item.name, branch:currentUser?currentUser.name:''}),
-    });
-  }catch(e){console.error('markDone error:',e);}
-  fuData.splice(i,1);
-  renderBranchFU();
-}
+  // Get last 7 days in KST order (oldest → newest)
+  const recs = (records[uid] || []).slice().sort((a,b) => a.date < b.date ? -1 : 1);
+  // Build date map
+  const byDate = {};
+  recs.forEach(r => { byDate[r.date] = r; });
+  // Last 7 calendar days (KST)
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() + 9*60*60*1000 - i*24*60*60*1000);
+    days.push(d.toISOString().slice(0,10));
+  }
 
-async function delFU(i){
-  const item=fuData[i];
-  if(!item)return;
-  if(!confirm(item.name+' 팔로업을 삭제할까요?'))return;
-  try{
-    fetch(API_URL,{
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'fu_delete', name:item.name, branch:currentUser?currentUser.name:''}),
-    });
-  }catch(e){console.error('delFU error:',e);}
-  fuData.splice(i,1);
-  renderBranchFU();
-}
+  // Check if any data at all
+  const hasData = days.some(d => byDate[d] && (byDate[d].painMorning != null || byDate[d].painEvening != null));
+  wrap.style.display = hasData ? '' : 'none';
+  if (!hasData) return;
 
-/* ─── CHARTS ─── */
-function drawDonut(id,vals,cols){
-  const cv=document.getElementById(id);
-  if(!cv||!cv.getContext)return;
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,88,88);
-  let s=-Math.PI/2;
-  vals.forEach((v,i)=>{
-    const a=v/100*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(44,44);ctx.arc(44,44,38,s,s+a);ctx.closePath();
-    ctx.fillStyle=cols[i];ctx.fill();s+=a;
+  const W = svg.parentElement.clientWidth - 20 || 300;
+  const H = 100;
+  const PAD = { t:12, r:18, b:28, l:26 };
+  const chartW = W - PAD.l - PAD.r;
+  const chartH = H - PAD.t - PAD.b;
+  const n = days.length; // 7
+
+  const xPos = (i) => PAD.l + (i / (n-1)) * chartW;
+  const yPos = (v) => PAD.t + chartH - (v / 10) * chartH;
+
+  const morningPts = days.map((d,i) => {
+    const r = byDate[d];
+    return r && r.painMorning != null ? [xPos(i), yPos(r.painMorning), r.painMorning] : null;
   });
-  ctx.beginPath();ctx.arc(44,44,22,0,Math.PI*2);
-  ctx.fillStyle='#ffffff';ctx.fill();
+  const eveningPts = days.map((d,i) => {
+    const r = byDate[d];
+    return r && r.painEvening != null ? [xPos(i), yPos(r.painEvening), r.painEvening] : null;
+  });
+
+  function buildPath(pts) {
+    const valid = pts.filter(Boolean);
+    if (valid.length < 1) return '';
+    return valid.map((p,i) => `${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  }
+
+  // Grid lines
+  let html = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  [0,5,10].forEach(v => {
+    const y = yPos(v);
+    html += `<line x1="${PAD.l}" y1="${y.toFixed(1)}" x2="${PAD.l+chartW}" y2="${y.toFixed(1)}" stroke="#2b3045" stroke-width="1"/>`;
+    html += `<text x="${(PAD.l-4).toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#68738f" font-family="Noto Sans KR,sans-serif">${v}</text>`;
+  });
+
+  // Day labels
+  const KOR_D = ['일','월','화','수','목','금','토'];
+  days.forEach((d,i) => {
+    const dow = new Date(d + 'T00:00:00+09:00').getDay();
+    const x = xPos(i).toFixed(1);
+    html += `<text x="${x}" y="${(H-6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#68738f" font-family="Noto Sans KR,sans-serif">${KOR_D[dow]}</text>`;
+  });
+
+  // Morning line (blue dashed)
+  const mPath = buildPath(morningPts);
+  if (mPath) html += `<path d="${mPath}" fill="none" stroke="#4f8ef7" stroke-width="1.5" stroke-dasharray="4 2"/>`;
+  // Evening line (red)
+  const ePath = buildPath(eveningPts);
+  if (ePath) html += `<path d="${ePath}" fill="none" stroke="#e02d3c" stroke-width="1.5"/>`;
+
+  // Dots + values
+  function renderDots(pts, color) {
+    pts.forEach(p => {
+      if (!p) return;
+      html += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${color}"/>`;
+      if (p[2] > 0) {
+        html += `<text x="${p[0].toFixed(1)}" y="${(p[1]-6).toFixed(1)}" text-anchor="middle" font-size="9" fill="${color}" font-family="Noto Sans KR,sans-serif">${p[2]}</text>`;
+      }
+    });
+  }
+  renderDots(morningPts, '#4f8ef7');
+  renderDots(eveningPts, '#e02d3c');
+
+  html += '</svg>';
+  svg.outerHTML = html;
 }
 
-function drawLine12(id, series, labels){
-  const el=document.getElementById(id);
-  if(!el)return;
-  const W=600, H=95, pL=10, pR=10, pT=8, pB=16;
-  const allV=series.flatMap(s=>s.data).filter(v=>!isNaN(v));
-  if(!allV.length)return;
-  const mn=Math.min(...allV)-5, mx=Math.max(...allV)+5;
-  const n=series[0].data.length||12;
-  const xf=i=>pL+(W-pL-pR)/Math.max(n-1,1)*i;
-  const yf=v=>pT+(1-(v-mn)/(mx-mn||1))*(H-pT-pB);
-  const lbs=labels||MONTHS12.slice(0,n);
-  let svg='';
-  series.forEach(s=>{
-    if(!s.data.length)return;
-    const pts=s.data.map((v,i)=>`${xf(i).toFixed(1)},${yf(v).toFixed(1)}`).join(' ');
-    svg+=`<polyline points="${pts}" fill="none" stroke="${s.col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
-    s.data.forEach((v,i)=>svg+=`<circle cx="${xf(i).toFixed(1)}" cy="${yf(v).toFixed(1)}" r="3" fill="${s.col}"/>`);
+function renderTodayExercises() {
+  const uid = currentUser;
+  const container = document.getElementById('today-exercises');
+  const titleEl = document.getElementById('today-title');
+  if (!isTodayExerciseDay(uid)) {
+    const nDays = {yuchan:'월 · 수 · 금 · 토', seungwoo:'월 · 수 · 금 · 토'};
+    titleEl.textContent = '오늘의 운동';
+    container.innerHTML = `<div class="rest-day">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">오늘은 휴식일입니다</div>
+      <div style="font-size:13px">운동일: ${nDays[uid]}요일</div>
+    </div>`;
+    return;
+  }
+  titleEl.textContent = '오늘의 운동';
+  const done = getDoneList(uid);
+  const items = schedules[uid];
+  container.innerHTML = items.map(ex =>
+    renderExItem(ex, done.includes(ex.id), uid)
+  ).join('');
+  container.querySelectorAll('.ex-item').forEach(el => {
+    el.addEventListener('click', () => toggleCheck(uid, el.dataset.id));
   });
-  lbs.forEach((m,i)=>svg+=`<text x="${xf(i).toFixed(1)}" y="${H-1}" text-anchor="middle" font-size="9" fill="#888">${m}</text>`);
-  el.innerHTML=svg;
 }
+
+function renderExItem(ex, isDone, uid) {
+  const catClass = ex.cat === '스트레칭' ? 'tag-stretch-ex' : 'tag-power';
+  return `<div class="ex-item ${isDone?'done':''}" data-id="${ex.id}" style="margin-bottom:8px">
+    <div class="ex-check">
+      <svg class="check-svg" width="12" height="10" viewBox="0 0 12 10" fill="none">
+        <path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="ex-info">
+      <span class="tag ${catClass}" style="margin-bottom:5px">${ex.cat}</span>
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-sets">${ex.sets}</div>
+      ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+async function toggleCheck(uid, exId) {
+  const k = getChecksKey(uid);
+  if (!checks[k]) checks[k] = [];
+  const idx = checks[k].indexOf(exId);
+  if (idx === -1) checks[k].push(exId);
+  else checks[k].splice(idx, 1);
+  if (db) {
+    try { await db.doc(`checks/${k}`).set({done: checks[k], user: uid, date: todayStr()}); } catch(e) {}
+  }
+  lsSet('gb_checks_'+k, checks[k]);
+  renderTodayExercises();
+}
+
+function renderUserSchedule() {
+  const uid = currentUser;
+  const items = schedules[uid];
+  const stretch = items.filter(e => e.cat === '스트레칭');
+  const power = items.filter(e => e.cat !== '스트레칭');
+  const container = document.getElementById('u-sched-list');
+
+  function exRow(ex, num) {
+    const catClass = ex.cat === '스트레칭' ? 'tag-stretch-ex' : 'tag-power';
+    return `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-8" style="margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);min-width:20px">${num}.</span>
+        <span class="tag ${catClass}">${ex.cat}</span>
+        <span style="font-weight:600;font-size:14px">${ex.name}</span>
+      </div>
+      <div style="padding-left:28px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:${ex.note?'4px':'0'}">${ex.sets}</div>
+        ${ex.note ? `<div style="font-size:12px;color:var(--blue);line-height:1.5">★ ${ex.note}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  let num = 1;
+  let html = `<div class="card" style="padding:4px 16px;margin-bottom:12px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 0 8px">스트레칭 (${stretch.length}개)</div>
+    ${stretch.map(ex => exRow(ex, num++)).join('')}
+  </div>
+  <div class="card" style="padding:4px 16px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 0 8px">근력 운동 (${power.length}개)</div>
+    ${power.map(ex => exRow(ex, num++)).join('')}
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+/* ─── Log form ─── */
+function initLogForm(uid) {
+  const d = new Date();
+  document.getElementById('u-log-date').textContent =
+    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 기록`;
+  // Pain scales
+  buildPainScale('pain-morning', 'morning');
+  buildPainScale('pain-evening', 'evening');
+  // Pre-fill exercise from today's checks
+  const done = getDoneList(uid);
+  const doneNames = (schedules[uid]||[]).filter(e => done.includes(e.id)).map(e=>e.name);
+  if (doneNames.length) document.getElementById('log-exercise').value = doneNames.join('\n');
+}
+
+function buildPainScale(containerId, which) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = [0,...Array.from({length:10},(_,i)=>i+1)].map(n =>
+    `<div class="pain-box" data-n="${n}" data-which="${which}" onclick="selectPain(this)">
+      ${n===0?'0':n}
+    </div>`
+  ).join('');
+}
+
+function selectPain(el) {
+  const which = el.dataset.which;
+  const n = parseInt(el.dataset.n);
+  if (which === 'morning') painMorning = n;
+  else painEvening = n;
+  const container = el.closest('.pain-scale');
+  container.querySelectorAll('.pain-box').forEach(b => {
+    const bn = parseInt(b.dataset.n);
+    b.className = 'pain-box';
+    if ((which==='morning'&&bn===painMorning)||(which==='evening'&&bn===painEvening)) {
+      b.classList.add(`active-${bn}`);
+    }
+  });
+}
+
+function adjSleep(delta) {
+  sleepVal = Math.max(0, Math.min(12, sleepVal + delta));
+  document.getElementById('sleep-val').textContent = sleepVal.toFixed(1);
+}
+
+async function submitLog() {
+  const uid = currentUser;
+  const btn = document.getElementById('log-submit-btn');
+  const status = document.getElementById('log-status');
+  btn.disabled = true;
+  btn.textContent = '전송 중…';
+  const record = {
+    user: uid,
+    name: USERS[uid].name,
+    date: todayStr(),
+    sleep: sleepVal,
+    food: document.getElementById('log-food').value.trim(),
+    exercise: document.getElementById('log-exercise').value.trim(),
+    notes: document.getElementById('log-notes').value.trim(),
+    painMorning,
+    painEvening,
+    timestamp: new Date().toISOString()
+  };
+  // Save to DB
+  if (db) {
+    try {
+      await db.doc(`records/${uid}-${record.date}`).set(record);
+    } catch(e) { console.warn(e); }
+  }
+  // Save locally
+  const existing = lsGet('gb_records_'+uid, []);
+  const idx = existing.findIndex(r => r.date === record.date);
+  if (idx >= 0) existing[idx] = record; else existing.unshift(record);
+  lsSet('gb_records_'+uid, existing);
+  records[uid] = existing;
+  // Send to Google Sheets if configured
+  const sheetsUrl = lsGet('gb_sheets_url', '');
+  if (sheetsUrl) {
+    try {
+      await fetch(sheetsUrl, {method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(record)});
+      status.textContent = '구글 시트에 저장되었습니다';
+    } catch(e) {
+      status.textContent = '로컬에만 저장됨 (시트 연결 확인)';
+    }
+  } else {
+    status.textContent = '저장되었습니다 (구글 시트 미연동)';
+  }
+  btn.disabled = false;
+  btn.textContent = '기록 전송하기';
+  renderHistory();
+  renderPainTrend();
+}
+
+function renderHistory() {
+  const uid = currentUser;
+  if (!uid || uid === 'admin') return;
+  const recs = records[uid] || [];
+  const c = document.getElementById('history-list');
+  if (!recs.length) {
+    c.innerHTML = '<div class="text-muted text-sm" style="text-align:center;padding:32px">기록이 없습니다</div>';
+    return;
+  }
+  c.innerHTML = recs.slice(0,30).map(r => {
+    const pm = r.painMorning||0, pe = r.painEvening||0;
+    return `<div class="hist-card">
+      <div class="hist-date">${formatDate(r.date)}</div>
+      <div class="hist-row"><span class="hist-row-label">수면</span> ${r.sleep}시간</div>
+      <div class="hist-row">
+        <span class="hist-row-label">통증</span>
+        아침 <span class="${pm>=7?'text-red':pm>=4?'text-amber':'text-green'} font-700">${pm}</span>
+        &nbsp; 저녁 <span class="${pe>=7?'text-red':pe>=4?'text-amber':'text-green'} font-700">${pe}</span>
+      </div>
+      ${r.food?`<div class="hist-row"><span class="hist-row-label">식사</span> <span style="font-size:12px">${r.food}</span></div>`:''}
+      ${r.notes?`<div class="hist-row"><span class="hist-row-label">특이사항</span> <span style="font-size:12px;color:var(--muted)">${r.notes}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function userNav(btn) {
+  document.querySelectorAll('.user-nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.user-subview').forEach(s => s.classList.remove('active'));
+  document.getElementById(btn.dataset.uv).classList.add('active');
+  if (btn.dataset.uv === 'u-schedule') renderUserSchedule();
+  if (btn.dataset.uv === 'u-history') renderHistory();
+  if (btn.dataset.uv === 'u-myinfo') loadMyInfoUI();
+  if (btn.dataset.uv === 'u-chat') initCoachChat();
+  if (btn.dataset.uv === 'u-log') {
+    const done = getDoneList(currentUser);
+    const doneNames = (schedules[currentUser]||[]).filter(e=>done.includes(e.id)).map(e=>e.name);
+    if (doneNames.length) document.getElementById('log-exercise').value = doneNames.join('\n');
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   ATTACHMENT HANDLING
+═══════════════════════════════════════════════════════ */
+// pending attachments: [{base64, mimeType, isVideo, name}]
+let adminAttachments = [];
+let coachAttachments = [];
+
+function handleAttach(input, ctx) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const attachments = ctx === 'admin' ? adminAttachments : coachAttachments;
+  const previewEl = document.getElementById(`${ctx}-attach-preview`);
+
+  files.forEach(file => {
+    if (file.type.startsWith('video/')) {
+      // Extract first frame from video
+      extractVideoFrame(file).then(({base64, mimeType}) => {
+        attachments.push({base64, mimeType, isVideo:true, name:file.name, videoFile:file});
+        renderAttachPreviews(ctx);
+      });
+    } else if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const raw = e.target.result; // data:image/...;base64,...
+        const [header, base64] = raw.split(',');
+        const mimeType = header.match(/:(.*?);/)[1];
+        attachments.push({base64, mimeType, isVideo:false, name:file.name, previewUrl:raw});
+        renderAttachPreviews(ctx);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  input.value = ''; // allow re-selecting same file
+}
+
+function extractVideoFrame(file) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.src = url;
+    video.muted = true;
+    video.crossOrigin = 'anonymous';
+    video.addEventListener('loadeddata', () => {
+      video.currentTime = 0.1;
+    });
+    video.addEventListener('seeked', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.min(video.videoWidth, 1280);
+      canvas.height = Math.round(video.videoHeight * (canvas.width / video.videoWidth));
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const [, base64] = dataUrl.split(',');
+      URL.revokeObjectURL(url);
+      resolve({base64, mimeType:'image/jpeg'});
+    });
+    video.load();
+  });
+}
+
+function renderAttachPreviews(ctx) {
+  const attachments = ctx === 'admin' ? adminAttachments : coachAttachments;
+  const previewEl = document.getElementById(`${ctx}-attach-preview`);
+  previewEl.innerHTML = attachments.map((a, i) => `
+    <div class="attach-thumb">
+      <img src="data:${a.mimeType};base64,${a.base64}" alt="${a.name}">
+      ${a.isVideo ? '<div style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,.6);border-radius:3px;padding:1px 4px;font-size:9px;color:#fff">동영상</div>' : ''}
+      <div class="attach-thumb-del" onclick="removeAttach(${i},'${ctx}')">✕</div>
+    </div>`).join('');
+}
+
+function removeAttach(idx, ctx) {
+  const attachments = ctx === 'admin' ? adminAttachments : coachAttachments;
+  attachments.splice(idx, 1);
+  renderAttachPreviews(ctx);
+}
+
+function buildImageContent(text, attachments) {
+  // Returns content array for OpenAI/Claude with images included
+  if (!attachments.length) return text; // plain string if no attachments
+  const parts = [{type:'text', text: text || '이 이미지/영상을 분석해주세요.'}];
+  attachments.forEach(a => {
+    parts.push({
+      type:'image_url',
+      image_url:{url:`data:${a.mimeType};base64,${a.base64}`, detail:'high'}
+    });
+  });
+  return parts; // array format for OpenAI vision
+}
+
+function buildImageContentClaude(text, attachments) {
+  // Anthropic format
+  if (!attachments.length) return text;
+  const parts = [];
+  attachments.forEach(a => {
+    parts.push({type:'image', source:{type:'base64', media_type:a.mimeType, data:a.base64}});
+  });
+  parts.push({type:'text', text: text || '이 이미지/영상을 분석해주세요.'});
+  return parts;
+}
+
+function appendAttachMsgs(attachments, msgContainerId) {
+  // Show image thumbnails in chat bubble
+  attachments.forEach(a => {
+    const c = document.getElementById(msgContainerId);
+    const el = document.createElement('div');
+    el.className = 'msg msg-user';
+    el.style.padding = '6px';
+    el.innerHTML = `<img src="data:${a.mimeType};base64,${a.base64}" class="msg-img" alt="${a.name}">
+      ${a.isVideo ? `<div style="font-size:10px;margin-top:3px;opacity:.8">동영상 프레임</div>` : ''}`;
+    c.appendChild(el);
+    c.scrollTop = c.scrollHeight;
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   AI CHAT
+═══════════════════════════════════════════════════════ */
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+document.getElementById('coach-chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCoachChat(); }
+});
+
+async function sendChat() {
+  if (adminSending) return;
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg && !adminAttachments.length) return;
+  const provider = document.getElementById('ai-provider').value;
+  const apiKey = lsGet('gb_ai_key_'+provider, '');
+  if (!apiKey) { showToast('API 키를 먼저 설정해주세요', 'err'); return; }
+  adminSending = true;
+  input.value = '';
+  // Capture & clear attachments
+  const attaches = [...adminAttachments];
+  adminAttachments = [];
+  document.getElementById('admin-attach-preview').innerHTML = '';
+  if (attaches.length) appendAttachMsgs(attaches, 'chat-messages');
+  if (msg) appendChatMsg('user', msg);
+  // Build history entry with images if any
+  const userContent = provider === 'openai'
+    ? buildImageContent(msg, attaches)
+    : buildImageContentClaude(msg, attaches);
+  chatHistory.push({role:'user', content: userContent});
+  const thinkEl = appendChatMsg('think', '생각 중…');
+  document.getElementById('chat-send-btn').disabled = true;
+  // Build context
+  const ctx = document.getElementById('chat-context').value;
+  const ctxParts = [];
+  if (ctx !== 'seungwoo') {
+    const prof = profiles.yuchan ? `\n- 프로필/병력:\n${profiles.yuchan}` : '';
+    ctxParts.push(`## 김유찬 코치님\n- 운동일: 월/수/금/토${prof}\n- 현재 운동: ${schedules.yuchan.map(e=>`${e.name} (${e.sets}${e.note?`, 주의: ${e.note}`:''})`).join(', ')}`);
+  }
+  if (ctx !== 'yuchan') {
+    const prof = profiles.seungwoo ? `\n- 프로필/병력:\n${profiles.seungwoo}` : '';
+    ctxParts.push(`## 한승우 코치님\n- 운동일: 월/수/금/토${prof}\n- 현재 운동: ${schedules.seungwoo.map(e=>`${e.name} (${e.sets}${e.note?`, 주의: ${e.note}`:''})`).join(', ')}`);
+  }
+  const uidsForCtx = ctx === 'both' ? ['yuchan','seungwoo'] : [ctx];
+  const recentCtx = buildRecentRecordsContext(uidsForCtx);
+  const rehabRefBlock = rehabRef ? `\n\n--- 재활 참고자료 ---\n${rehabRef}` : '';
+  const systemMsg = `당신은 복싱 코치들의 재활을 전문으로 하는 물리치료사입니다. G복싱 소속 코치님들의 재활 프로그램을 담당하고 있습니다.${rehabRefBlock}
+
+${ctxParts.join('\n\n')}
+
+--- 최근 기록 (자동 업데이트됨) ---
+${recentCtx}
+
+운동 처방 시 통증 없이 진행 가능한 운동을 우선하고, 각 코치님의 상태에 맞게 조언해주세요. 한국어로 답변하세요.
+
+운동 스케쥴을 제안할 때는 반드시 아래 JSON 형식을 포함하세요 (앱에서 자동 적용 가능):
+\`\`\`schedule
+[{"cat":"스트레칭","name":"운동명","sets":"횟수/시간","note":"코칭 포인트"},...]
+\`\`\`
+스케쥴 제안이 아닌 일반 질문에는 이 형식을 사용하지 마세요.`;
+  try {
+    let replyText = '';
+    if (provider === 'openai') {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body: JSON.stringify({
+          model:'gpt-4o',
+          messages:[{role:'system',content:systemMsg},...chatHistory],
+          max_tokens:1000
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      replyText = data.choices[0].message.content;
+    } else {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body: JSON.stringify({
+          model:'claude-opus-4-5', // update if needed
+          max_tokens:1000,
+          system: systemMsg,
+          messages: chatHistory
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      replyText = data.content[0].text;
+    }
+    thinkEl.remove();
+    appendChatMsg('ai', replyText);
+    chatHistory.push({role:'assistant', content: replyText});
+    // Detect schedule block → show apply button (admin only)
+    const schedMatch = replyText.match(/```schedule\s*([\s\S]*?)```/);
+    if (schedMatch) {
+      const applyUid = ctx === 'both' ? null : ctx;
+      showScheduleApplyBtn(schedMatch[1].trim(), applyUid);
+    }
+  } catch(e) {
+    thinkEl.remove();
+    appendChatMsg('ai', `오류가 발생했습니다: ${e.message}`);
+  } finally {
+    adminSending = false;
+    document.getElementById('chat-send-btn').disabled = false;
+  }
+}
+
+function appendChatMsg(type, text) {
+  const c = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.textContent = text;
+  if (type === 'user') el.className = 'msg msg-user';
+  else if (type === 'ai') el.className = 'msg msg-ai';
+  else { el.className = 'chat-thinking'; }
+  c.appendChild(el);
+  c.scrollTop = c.scrollHeight;
+  return el;
+}
+
+/* ════════════════════════════════════════════════════
+   COACH AI CHAT
+═══════════════════════════════════════════════════════ */
+function initCoachChat() {
+  if (coachChatHistory.length) return; // don't reset if already started
+  const container = document.getElementById('coach-chat-messages');
+  if (!container) return;
+  coachChatHistory = [];
+  container.innerHTML = '<div class="msg msg-system">운동, 재활에 대해 질문하세요.<br>예: "버드독 할 때 허리가 당기는데 어떻게 해야 하나요?"</div>';
+}
+
+async function sendCoachChat() {
+  if (coachSending) return;
+  const uid = currentUser;
+  const input = document.getElementById('coach-chat-input');
+  const msg = input.value.trim();
+  if (!msg && !coachAttachments.length) return;
+
+  const provider = lsGet('gb_ai_provider', 'openai');
+  const apiKey = lsGet('gb_ai_key_'+provider, '');
+  if (!apiKey) { showToast('API 키 미설정 (관리자 문의)', 'err'); return; }
+
+  coachSending = true;
+  input.value = '';
+  // Capture & clear attachments
+  const attaches = [...coachAttachments];
+  coachAttachments = [];
+  document.getElementById('coach-attach-preview').innerHTML = '';
+  if (attaches.length) appendAttachMsgs(attaches, 'coach-chat-messages');
+  if (msg) appendCoachChatMsg('user', msg);
+  // Build history entry with images if any
+  const userContent = provider === 'openai'
+    ? buildImageContent(msg, attaches)
+    : buildImageContentClaude(msg, attaches);
+  coachChatHistory.push({role:'user', content: userContent});
+  const thinkEl = appendCoachChatMsg('think', '생각 중…');
+  document.getElementById('coach-send-btn').disabled = true;
+
+  const u = USERS[uid];
+  const exList = schedules[uid].map(e => `${e.name} (${e.sets}${e.note?`, 주의: ${e.note}`:''})`).join('\n- ');
+  const recentRecs = buildRecentRecordsContext([uid]);
+  const myProfile = profiles[uid] ? `\n\n--- 내 프로필/병력 ---\n${profiles[uid]}` : '';
+  const rehabRefBlock2 = rehabRef ? `\n\n--- 재활 참고자료 ---\n${rehabRef}` : '';
+  const systemMsg = `당신은 복싱 코치의 재활을 전문으로 하는 물리치료사입니다.${rehabRefBlock2}
+
+코치: ${u.name}${myProfile}
+
+현재 운동 프로그램:
+- ${exList}
+
+${recentRecs}
+
+코치님에게 맞는 실용적인 조언을 한국어로 해주세요. 통증이 있을 경우 즉시 전문가 상담을 권고하세요.`;
+
+  try {
+    let replyText = '';
+    if (provider === 'openai') {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+        body: JSON.stringify({
+          model:'gpt-4o',
+          messages:[{role:'system',content:systemMsg},...coachChatHistory],
+          max_tokens:800
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      replyText = data.choices[0].message.content;
+    } else {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body: JSON.stringify({model:'claude-opus-4-5',max_tokens:800,system:systemMsg,messages:coachChatHistory})
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      replyText = data.content[0].text;
+    }
+    thinkEl.remove();
+    appendCoachChatMsg('ai', replyText);
+    coachChatHistory.push({role:'assistant', content: replyText});
+  } catch(e) {
+    thinkEl.remove();
+    appendCoachChatMsg('ai', `오류: ${e.message}`);
+  } finally {
+    coachSending = false;
+    document.getElementById('coach-send-btn').disabled = false;
+  }
+}
+
+function appendCoachChatMsg(type, text) {
+  const c = document.getElementById('coach-chat-messages');
+  const el = document.createElement('div');
+  el.textContent = text;
+  if (type === 'user') el.className = 'msg msg-user';
+  else if (type === 'ai') el.className = 'msg msg-ai';
+  else el.className = 'chat-thinking';
+  c.appendChild(el);
+  c.scrollTop = c.scrollHeight;
+  return el;
+}
+
+/* ════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════ */
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:${type==='err'?'var(--red)':'var(--elevated)'};
+    color:${type==='err'?'#fff':'var(--text)'};border:1px solid var(--border);
+    padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;z-index:999;
+    box-shadow:0 4px 20px rgba(0,0,0,.4)`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+/* ════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════ */
+// Load schedules from localStorage as fallback
+['yuchan','seungwoo'].forEach(uid => {
+  const saved = lsGet('gb_sched_'+uid, null);
+  if (saved && Array.isArray(saved)) schedules[uid] = saved;
+});
+
+initDb();
 </script>
 </body>
 </html>
