@@ -728,7 +728,7 @@ let LIVE={hq:null, branches:{}};
 /* ── Sheets fetch (Apps Script 프록시) ── */
 async function fetchSheet(sheetName){
   try{
-    const url=PROXY_URL+'?sheet='+encodeURIComponent(sheetName);
+    const url=PROXY_URL+'?sheet='+encodeURIComponent(sheetName)+'&_t='+Date.now();
     console.log('fetchSheet:',sheetName);
     const res=await fetch(url);
     const json=await res.json();
